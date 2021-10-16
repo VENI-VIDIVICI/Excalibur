@@ -11,6 +11,7 @@ import { Color } from '../../Color';
 import { StateStack } from './state-stack';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { DebugText } from './debug-text';
+import { Renderer } from './renderer';
 
 class ExcaliburGraphicsContext2DCanvasDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -207,6 +208,14 @@ export class ExcaliburGraphicsContext2DCanvas implements ExcaliburGraphicsContex
     this.__ctx.fill();
     this.__ctx.closePath();
     this.__ctx.restore();
+  }
+
+  public register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void) {
+    throw new Error('')
+  }
+
+  public draw(name: string, ...args: any[]) {
+    throw new Error('')
   }
 
   debug = new ExcaliburGraphicsContext2DCanvasDebug(this);

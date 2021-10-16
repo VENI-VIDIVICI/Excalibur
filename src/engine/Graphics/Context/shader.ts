@@ -17,7 +17,7 @@ export interface UniformDefinition {
  * Create a shader program for the Excalibur WebGL Graphics Context
  */
 export class Shader {
-  public program: WebGLProgram | null = null;
+  public program!: WebGLProgram;
 
   public uniforms: { [variableName: string]: UniformDefinition } = {};
   public attributes: { [variableName: string]: VertexAttributeDefinition } = {};
@@ -94,7 +94,7 @@ export class Shader {
     this.uniforms[name] = {
       name,
       type: 'matrix',
-      location: gl.getUniformLocation(this.program, name),
+      location: gl.getUniformLocation(this.program, name) ?? Error(`Could not find uniform matrix [${name}]`),
       data: data
     };
   }
@@ -112,7 +112,7 @@ export class Shader {
     this.uniforms[name] = {
       name,
       type: 'numbers',
-      location: gl.getUniformLocation(this.program, name),
+      location: gl.getUniformLocation(this.program, name) ?? Error(`Could not find uniform matrix [${name}]`),
       data: data
     };
   }

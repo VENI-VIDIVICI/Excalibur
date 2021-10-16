@@ -3,8 +3,10 @@ import { Shader } from './shader';
 // import { Pool, Poolable } from './pool';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { Pool, Poolable } from '../../Util/Pool';
+import { WebGLGraphicsContextInfo } from '..';
 
 export interface Renderer {
+  initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void;
   render(): void;
 }
 
@@ -35,12 +37,12 @@ export interface BatchRendererOptions<T extends Poolable> {
 export abstract class BatchRenderer<T extends Poolable> implements Renderer {
   priority = 0;
   private _gl: WebGLRenderingContext;
-  private _vertices: Float32Array;
+  private _vertices!: Float32Array;
   private _verticesPerCommand: number;
   private _buffer: WebGLBuffer | null = null;
   private _maxCommandsPerBatch: number = 2000;
 
-  public shader: Shader;
+  public shader!: Shader;
 
   public commands: Pool<T>;
   private _batchPool: Pool<BatchCommand<T>>;
@@ -59,7 +61,9 @@ export abstract class BatchRenderer<T extends Poolable> implements Renderer {
     );
     this._batchPool = new Pool<BatchCommand<T>>(batchFactory, (b) => b.dispose(), 100);
   }
-
+  public initialize(): void {
+    
+  }
   /**
    * Initialize render, builds shader and initialized webgl buffers
    */

@@ -20,6 +20,8 @@ import { PointRenderer } from './point-renderer';
 import { Canvas } from '../Canvas';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { DebugText } from './debug-text';
+import { Renderer } from './renderer';
+import { ImageRendererV2 } from './image-renderer-v2';
 
 class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -90,6 +92,8 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
   private _state = new StateStack();
   private _ortho!: Matrix;
 
+  private _renderers = new Map<string, {renderer: Renderer, handler: (renderer: Renderer, ...args: any[]) => any} >();
+  private _currentRenderer: string;
   /**
    * Meant for internal use only. Access the internal context at your own risk and no guarantees this will exist in the future.
    * @internal
@@ -159,6 +163,18 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+    this.register('image', new ImageRendererV2, (r, image: HTMLImageSource,
+      sx: number,
+      sy: number,
+      swidth?: number,
+      sheight?: number,
+      dx?: number,
+      dy?: number,
+      dwidth?: number,
+      dheight?: number) => {
+      r.drawImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    });
+
     this.__pointRenderer = new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__lineRenderer = new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__imageRenderer = new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
@@ -169,6 +185,23 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
       height: gl.canvas.height
     });
     this.__ctx = this._canvas.ctx;
+  }
+
+  public register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void) {
+    this._renderers.set(name, {renderer, handler: handler as any});
+  }
+
+  public draw(name: string, ...args: any[]) {
+    if (this._currentRenderer !== name) {
+      this._renderers.get(this._currentRenderer)?.renderer.render();
+    }
+    
+    const render = this._renderers.get(name);
+    if (render) {
+      this._currentRenderer = name;
+      const {renderer, handler} = render;
+      handler(renderer, ...args)
+    }
   }
 
   public resetTransform(): void {
@@ -290,5 +323,6 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.__imageRenderer.render();
     this.__lineRenderer.render();
     this.__pointRenderer.render();
+    this._renderers.get(this._currentRenderer)?.renderer.render();
   }
 }

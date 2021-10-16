@@ -125,6 +125,8 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
     shader.addAttribute('a_textureIndex', 1, gl.FLOAT);
     shader.addAttribute('a_opacity', 1, gl.FLOAT);
     shader.addAttribute('a_color', 4, gl.FLOAT);
+    shader.addAttribute('a_strokeColor', 4, gl.FLOAT);
+    shader.addAttribute('a_strokeThickness', 1, gl.FLOAT);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     // Initialize texture slots to [0, 1, 2, 3, 4, .... maxGPUTextures]
     shader.addUniformIntegerArray(
@@ -201,6 +203,8 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
     let potHeight: number = 1;
     let textureId = 0;
     let commandColor = Color.Transparent;
+    let commandStrokeColor = Color.Transparent;
+    let commandStrokeThickness = 0;
     for (const command of batch.commands) {
       sx = command.view[0];
       sy = command.view[1];
@@ -213,11 +217,15 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       textureId = batch.getBatchTextureId(command);
       if (command.type === DrawCommandType.Line || command.type === DrawCommandType.Rectangle) {
         textureId = -1; // sentinel for no image rect
-        commandColor = command.color;
+        commandColor = command.color ?? commandColor;
+        commandStrokeColor = command.strokeColor ?? commandStrokeColor;
+        commandStrokeThickness = command.strokeThickness ?? commandStrokeThickness;
       }
       if (command.type === DrawCommandType.Circle) {
         textureId = -2; // sentinel for circle
-        commandColor = command.color;
+        commandColor = command.color ?? commandColor;
+        commandStrokeColor = command.strokeColor ?? commandStrokeColor;
+        commandStrokeThickness = command.strokeThickness ?? commandStrokeThickness;
       }
 
       // potential optimization when divding by 2 (bitshift)
@@ -251,6 +259,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
 
       // (0, 1)
       vertexBuffer[vertIndex++] = command.geometry[1][0]; // x + 0 * width;
@@ -269,6 +284,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
 
       // (1, 0)
       vertexBuffer[vertIndex++] = command.geometry[2][0]; // x + 1 * width;
@@ -287,6 +309,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
 
       // (1, 0)
       vertexBuffer[vertIndex++] = command.geometry[3][0]; // x + 1 * width;
@@ -305,6 +334,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
 
       // (0, 1)
       vertexBuffer[vertIndex++] = command.geometry[4][0]; // x + 0 * width;
@@ -323,6 +359,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
 
       // (1, 1)
       vertexBuffer[vertIndex++] = command.geometry[5][0]; // x + 1 * width;
@@ -341,6 +384,13 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
       vertexBuffer[vertIndex++] = commandColor.g / 255;
       vertexBuffer[vertIndex++] = commandColor.b / 255;
       vertexBuffer[vertIndex++] = commandColor.a;
+      // stroke color
+      vertexBuffer[vertIndex++] = commandStrokeColor.r / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.g / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.b / 255;
+      vertexBuffer[vertIndex++] = commandStrokeColor.a;
+      // stroke thickness
+      vertexBuffer[vertIndex++] = commandStrokeThickness;
     }
 
     return vertIndex / this.vertexSize;

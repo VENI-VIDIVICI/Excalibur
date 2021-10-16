@@ -4,15 +4,6 @@ attribute vec4 a_position;
 attribute float a_opacity;
 varying float v_opacity;
 
-attribute vec4 a_color;
-varying vec4 v_color;
-
-attribute vec4 a_strokeColor;
-varying vec4 v_strokeColor;
-
-attribute float a_strokeThickness;
-varying float v_strokeThickness;
-
 // UV coordinate
 attribute vec2 a_texcoord;
 varying vec2 v_texcoord;
@@ -34,10 +25,4 @@ void main() {
    v_texcoord = a_texcoord;
    // Pass through the texture number to the fragment shader
    v_textureIndex = a_textureIndex;
-   // Pass through the color to the fragment shader
-   v_color = a_color;
-   // Pass through the stroke color to the fragment shader
-   v_strokeColor = a_strokeColor;
-   // Pass through the stroke thickenss to the fragment shader
-   v_strokeThickness = a_strokeThickness;
 }

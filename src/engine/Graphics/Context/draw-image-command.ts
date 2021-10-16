@@ -13,11 +13,12 @@ export enum DrawCommandType {
 }
 
 export class DrawImageCommand implements Poolable {
-  _pool: Pool<this> = undefined;
-
+  _pool!: Pool<any>;
   public snapToPixel: boolean = true;
-  public image: HTMLImageSource;
-  public color: Color;
+  public image?: HTMLImageSource;
+  public color?: Color;
+  public strokeColor?: Color;
+  public strokeThickness?: number;
   public type = DrawCommandType.Image;
   public opacity: number = 1;
   public width: number = 0;
@@ -75,11 +76,11 @@ export class DrawImageCommand implements Poolable {
     this.image = image;
     this.width = image?.width || swidth || 0;
     this.height = image?.height || sheight || 0;
-    this.view = [0, 0, swidth ?? image?.width, sheight ?? image?.height];
-    this.dest = [sx, sy];
+    this.view = [0, 0, swidth ?? image?.width ?? 0, sheight ?? image?.height ?? 0];
+    this.dest = [sx ?? 1, sy ?? 1];
     // If destination is specified, update view and dest
     if (dx !== undefined && dy !== undefined && dwidth !== undefined && dheight !== undefined) {
-      this.view = [sx, sy, swidth ?? image?.width, sheight ?? image?.height];
+      this.view = [sx ?? 1, sy ?? 1, swidth ?? image?.width ?? 0, sheight ?? image?.height ?? 0];
       this.dest = [dx, dy];
       this.width = dwidth;
       this.height = dheight;
@@ -162,6 +163,8 @@ export class DrawImageCommand implements Poolable {
   public initCircle(pos: Vector, radius: number, color: Color) {
     this.type = DrawCommandType.Circle;
     this.color = color;
+    this.width = radius * 2;
+    this.height = radius * 2;
     const topLeft = pos.add(vec(-radius, -radius));
     const topRight = pos.add(vec(radius, -radius));
     const bottomRight = pos.add(vec(radius, radius));
@@ -184,7 +187,7 @@ export class DrawImageCommand implements Poolable {
   }
 
   public dispose() {
-    this.image = null;
+    this.image = undefined;
     this.width = 0;
     this.height = 0;
     this.view = [0, 0, 0, 0];

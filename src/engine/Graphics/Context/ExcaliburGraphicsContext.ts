@@ -1,5 +1,6 @@
 import { Vector } from '../../Math/vector';
 import { Color } from '../../Color';
+import { Renderer } from './renderer';
 
 export type HTMLImageSource = HTMLImageElement | HTMLCanvasElement;
 
@@ -149,6 +150,9 @@ export interface ExcaliburGraphicsContext {
    * @param color
    */
   drawCircle(pos: Vector, radius: number, color: Color): void;
+
+  register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void): void;
+  draw(name: string, ...args: any[]): void;
 
   /**
    * Save the current state of the canvas to the stack (transforms and opacity)

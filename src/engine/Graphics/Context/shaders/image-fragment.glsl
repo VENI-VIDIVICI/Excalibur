@@ -12,6 +12,12 @@ varying lowp float v_textureIndex;
 // Color coord to blend with image
 varying lowp vec4 v_color;
 
+// Stroke color if used
+varying lowp vec4 v_strokeColor;
+
+// Stroke thickness if used
+varying lowp float v_strokeThickness;
+
 // Opacity
 varying float v_opacity;
 

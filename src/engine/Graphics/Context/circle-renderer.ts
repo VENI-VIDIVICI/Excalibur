@@ -5,6 +5,7 @@ import { Renderer } from "./renderer";
 import { Shader } from "./shader";
 import circleVertexSource from './shaders/circle-vertex.glsl';
 import circleFragmentSource from './shaders/circle-fragment.glsl';
+import { GraphicsDiagnostics } from "../GraphicsDiagnostics";
 
 export class CircleRenderer implements Renderer {
   shader!: Shader;
@@ -45,7 +46,7 @@ export class CircleRenderer implements Renderer {
     return false;
   }
 
-  drawCircle(pos: Vector, radius: number, color: Color, stroke: Color, strokeThickness: number) {
+  draw(pos: Vector, radius: number, color: Color, stroke: Color, strokeThickness: number) {
     if (this._isFull()) {
       this.render();
     }
@@ -215,6 +216,8 @@ export class CircleRenderer implements Renderer {
     const gl = this._gl;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+
+    // Switch to current shader
     this.shader.use();
 
     // Ship geometry to graphics hardware
@@ -224,8 +227,8 @@ export class CircleRenderer implements Renderer {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this.shader.vertexAttributeSize);
 
     // Diags
-    // GraphicsDiagnostics.DrawCallCount++;
-    // GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this._shader.vertexAttributeSize;
+    GraphicsDiagnostics.DrawCallCount++;
+    GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this.shader.vertexAttributeSize;
 
     // Reset
     this._vertIndex = 0;

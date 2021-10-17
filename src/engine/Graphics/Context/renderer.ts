@@ -8,6 +8,7 @@ import { WebGLGraphicsContextInfo } from '..';
 export interface Renderer {
   shader: Shader;
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void;
+  draw(...args: any[]): void;
   render(): void;
 }
 
@@ -64,6 +65,9 @@ export abstract class BatchRenderer<T extends Poolable> implements Renderer {
   }
   public initialize(): void {
     
+  }
+  public draw(..._args: any[]): void {
+    // todo hack
   }
   /**
    * Initialize render, builds shader and initialized webgl buffers

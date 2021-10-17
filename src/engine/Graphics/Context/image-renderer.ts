@@ -152,6 +152,18 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
     return newSource;
   }
 
+  public draw(image: HTMLImageSource,
+    sx: number,
+    sy: number,
+    swidth?: number,
+    sheight?: number,
+    dx?: number,
+    dy?: number,
+    dwidth?: number,
+    dheight?: number) {
+    this.addImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+  }
+
   public addCircle(pos: Vector, radius: number, color: Color) {
     const command = this.commands.get().initCircle(pos, radius, color);
     command.applyTransform(this._contextInfo.transform.current, this._contextInfo.state.current.opacity);

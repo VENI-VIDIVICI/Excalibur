@@ -1,13 +1,23 @@
-import { Raster, RasterOptions } from './Raster';
+import { GraphicOptions } from './Graphic';
+import { Color } from '../Color';
+import { ExcaliburGraphicsContext } from './Context/ExcaliburGraphicsContext';
+import { Graphic } from './Graphic';
+import { vec } from '../Math/vector';
 
 export interface CircleOptions {
   radius: number;
+  color?: Color;
+  strokeColor?: Color;
+  strokeWidth?: number;
 }
 
 /**
  * A circle [[Graphic]] for drawing circles to the [[ExcaliburGraphicsContext]]
  */
-export class Circle extends Raster {
+export class Circle extends Graphic {
+  public color = Color.Black;
+  public strokeColor = Color.Black;
+  public strokeWidth: number = 0;
   private _radius: number = 0;
   public get radius() {
     return this._radius;
@@ -16,35 +26,23 @@ export class Circle extends Raster {
     this._radius = value;
     this.width = this._radius * 2;
     this.height = this._radius * 2;
-    this.flagDirty();
   }
-  constructor(options: RasterOptions & CircleOptions) {
+  constructor(options: CircleOptions & GraphicOptions) {
     super(options);
-    this.padding = options.padding ?? 2; // default 2 padding for circles looks nice
     this.radius = options.radius;
-    this.rasterize();
+    this.color = options.color ?? this.color;
+    this.strokeColor = options.strokeColor ?? this.strokeColor;
+    this.strokeWidth = options.strokeWidth ?? this.strokeWidth;
+  }
+
+  protected _drawImage(ex: ExcaliburGraphicsContext, x: number, y: number): void {
+    ex.draw('circle', vec(x, y), this.radius, this.color, this.strokeColor, this.strokeWidth);
   }
 
   public clone(): Circle {
     return new Circle({
       radius: this.radius,
       ...this.cloneGraphicOptions(),
-      ...this.cloneRasterOptions()
     });
-  }
-
-  execute(ctx: CanvasRenderingContext2D): void {
-    if (this.radius > 0) {
-      ctx.beginPath();
-      ctx.arc(this.radius, this.radius, this.radius, 0, Math.PI * 2);
-
-      if (this.color) {
-        ctx.fill();
-      }
-
-      if (this.strokeColor) {
-        ctx.stroke();
-      }
-    }
   }
 }

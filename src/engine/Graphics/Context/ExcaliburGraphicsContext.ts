@@ -151,8 +151,8 @@ export interface ExcaliburGraphicsContext {
    */
   drawCircle(pos: Vector, radius: number, color: Color): void;
 
-  register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void): void;
-  draw(name: string, ...args: any[]): void;
+  register<T extends Renderer>(name: string, renderer: T): void;
+  draw<TRenderer extends Renderer>(name: string, ...args: Parameters<TRenderer['draw']>): void;
 
   /**
    * Save the current state of the canvas to the stack (transforms and opacity)

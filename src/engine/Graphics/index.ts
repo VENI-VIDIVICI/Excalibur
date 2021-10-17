@@ -25,4 +25,9 @@ export * from './Context/ExcaliburGraphicsContext';
 export * from './Context/ExcaliburGraphicsContext2DCanvas';
 export * from './Context/ExcaliburGraphicsContextWebGL';
 
+// Renderers
+export * from './Context/line-renderer';
+export * from './Context/image-renderer-v2';
+export * from './Context/circle-renderer';
+
 export * from './Context/debug-text';

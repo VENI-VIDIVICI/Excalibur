@@ -93,7 +93,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
   private _state = new StateStack();
   private _ortho!: Matrix;
 
-  private _renderers = new Map<string, {renderer: Renderer, handler: (renderer: Renderer, ...args: any[]) => any} >();
+  private _renderers = new Map<string, Renderer>();
   private _currentRenderer: string;
   /**
    * Meant for internal use only. Access the internal context at your own risk and no guarantees this will exist in the future.
@@ -164,25 +164,13 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    this.register('image', new ImageRendererV2, (r, image: HTMLImageSource,
-      sx: number,
-      sy: number,
-      swidth?: number,
-      sheight?: number,
-      dx?: number,
-      dy?: number,
-      dwidth?: number,
-      dheight?: number) => {
-      r.drawImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
-    });
-
-    this.register('circle', new CircleRenderer, (r, pos: Vector, radius: number, color: Color, stroke: Color, strokeThickness: number) => {
-      r.drawCircle(pos, radius, color, stroke, strokeThickness);
-    });
+    this.register('image', new ImageRendererV2);
+    this.register('circle', new CircleRenderer);
 
     this.__pointRenderer = new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__lineRenderer = new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__imageRenderer = new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
+    this.register('ogimage', this.__imageRenderer);
 
     // 2D ctx shim
     this._canvas = new Canvas({
@@ -192,21 +180,20 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.__ctx = this._canvas.ctx;
   }
 
-  public register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void) {
-    this._renderers.set(name, {renderer, handler: handler as any});
+  public register<T extends Renderer>(name: string, renderer: T) {
+    this._renderers.set(name, renderer);
     renderer.initialize(this.__gl, { matrix: this._ortho, transform: this._transform, state: this._state });
   }
 
-  public draw(name: string, ...args: any[]) {
+  public draw<TRenderer extends Renderer>(name: string, ...args: Parameters<TRenderer['draw']>) {
     if (this._currentRenderer !== name) {
-      this._renderers.get(this._currentRenderer)?.renderer.render();
+      this._renderers.get(this._currentRenderer)?.render();
     }
-    
+
     const render = this._renderers.get(name);
     if (render) {
       this._currentRenderer = name;
-      const {renderer, handler} = render;
-      handler(renderer, ...args)
+      render.draw(...args);
     }
   }
 
@@ -220,7 +207,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.__pointRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     this.__lineRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     this.__imageRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
-    for (let {renderer} of this._renderers.values()) {
+    for (let renderer of this._renderers.values()) {
       renderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     }
 
@@ -253,7 +240,8 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     dwidth?: number,
     dheight?: number
   ): void {
-    this.draw('image', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    this.draw<ImageRendererV2>('image', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    // this.draw<ImageRenderer>('ogimage', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
     // if (swidth === 0 || sheight === 0) {
     //   return; // zero dimension dest exit early
     // } else if (dwidth === 0 || dheight === 0) {
@@ -333,6 +321,6 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     // this.__imageRenderer.render();
     // this.__lineRenderer.render();
     // this.__pointRenderer.render();
-    this._renderers.get(this._currentRenderer)?.renderer.render();
+    this._renderers.get(this._currentRenderer)?.render();
   }
 }

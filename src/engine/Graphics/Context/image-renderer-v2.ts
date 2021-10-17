@@ -110,7 +110,7 @@ export class ImageRendererV2 implements Renderer {
     return false;
   }
 
-  drawImage(image: HTMLImageSource,
+  draw(image: HTMLImageSource,
     sx: number,
     sy: number,
     swidth?: number,
@@ -132,7 +132,6 @@ export class ImageRendererV2 implements Renderer {
     // interleave VBOs https://goharsha.com/lwjgl-tutorial-series/interleaving-buffer-objects/
     let width = image?.width || swidth || 0;
     let height = image?.height || sheight || 0;
-
     let view = [0, 0, swidth ?? image?.width ?? 0, sheight ?? image?.height ?? 0];
     let dest = [sx ?? 1, sy ?? 1];
     // If destination is specified, update view and dest
@@ -167,8 +166,8 @@ export class ImageRendererV2 implements Renderer {
     let sh = view[3];
 
     const textureId = this._getTextureIdForImage(image);
-    const potWidth = ensurePowerOfTwo(width);
-    const potHeight = ensurePowerOfTwo(height);
+    const potWidth = ensurePowerOfTwo(image.width || width);
+    const potHeight = ensurePowerOfTwo(image.height || height);
 
     // potential optimization when divding by 2 (bitshift)
     // Modifying the images to poweroftwo images warp the UV coordinates
@@ -255,15 +254,16 @@ export class ImageRendererV2 implements Renderer {
     this._vertices[this._vertIndex++] = textureId;
     // opacity
     this._vertices[this._vertIndex++] = opacity;
-    // this.render();
   }
 
   render(): void {
     const gl = this._gl;
-    // Ship geometry to graphics hardware
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+    
+    // Switch to current renderer shader
     this.shader.use();
-
+    
+    // Ship geometry to graphics hardware
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertices);
 
     // Bind textures to
@@ -279,5 +279,6 @@ export class ImageRendererV2 implements Renderer {
     // Reset
     this._vertIndex = 0;
     this._imageCount = 0;
+    this._textures.length = 0;
   }
 }

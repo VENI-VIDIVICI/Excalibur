@@ -13,7 +13,7 @@ import { TransformStack } from './transform-stack';
 import { Vector, vec } from '../../Math/vector';
 import { Color } from '../../Color';
 import { StateStack } from './state-stack';
-import { Logger } from '../../Util/Log';
+// import { Logger } from '../../Util/Log';
 import { LineRenderer } from './line-renderer';
 import { ImageRenderer } from './image-renderer';
 import { PointRenderer } from './point-renderer';
@@ -22,6 +22,7 @@ import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { DebugText } from './debug-text';
 import { Renderer } from './renderer';
 import { ImageRendererV2 } from './image-renderer-v2';
+import { CircleRenderer } from './circle-renderer';
 
 class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -175,6 +176,10 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
       r.drawImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
     });
 
+    this.register('circle', new CircleRenderer, (r, pos: Vector, radius: number, color: Color, stroke: Color, strokeThickness: number) => {
+      r.drawCircle(pos, radius, color, stroke, strokeThickness);
+    });
+
     this.__pointRenderer = new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__lineRenderer = new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
     this.__imageRenderer = new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
@@ -189,6 +194,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
 
   public register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void) {
     this._renderers.set(name, {renderer, handler: handler as any});
+    renderer.initialize(this.__gl, { matrix: this._ortho, transform: this._transform, state: this._state });
   }
 
   public draw(name: string, ...args: any[]) {
@@ -214,6 +220,9 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.__pointRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     this.__lineRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     this.__imageRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
+    for (let {renderer} of this._renderers.values()) {
+      renderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
+    }
 
     // 2D ctx shim
     this._canvas.width = gl.canvas.width;
@@ -244,24 +253,25 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     dwidth?: number,
     dheight?: number
   ): void {
-    if (swidth === 0 || sheight === 0) {
-      return; // zero dimension dest exit early
-    } else if (dwidth === 0 || dheight === 0) {
-      return; // zero dimension dest exit early
-    } else if (image.width === 0 || image.height === 0) {
-      return; // zero dimension source exit early
-    }
+    this.draw('image', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    // if (swidth === 0 || sheight === 0) {
+    //   return; // zero dimension dest exit early
+    // } else if (dwidth === 0 || dheight === 0) {
+    //   return; // zero dimension dest exit early
+    // } else if (image.width === 0 || image.height === 0) {
+    //   return; // zero dimension source exit early
+    // }
 
-    if (!image) {
-      Logger.getInstance().warn('Cannot draw a null or undefined image');
-      // tslint:disable-next-line: no-console
-      if (console.trace) {
-        // tslint:disable-next-line: no-console
-        console.trace();
-      }
-      return;
-    }
-    this.__imageRenderer.addImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    // if (!image) {
+    //   Logger.getInstance().warn('Cannot draw a null or undefined image');
+    //   // tslint:disable-next-line: no-console
+    //   if (console.trace) {
+    //     // tslint:disable-next-line: no-console
+    //     console.trace();
+    //   }
+    //   return;
+    // }
+    // this.__imageRenderer.addImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
   }
 
   public drawLine(start: Vector, end: Vector, color: Color, thickness = 1) {
@@ -320,9 +330,9 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     const gl = this.__gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    this.__imageRenderer.render();
-    this.__lineRenderer.render();
-    this.__pointRenderer.render();
+    // this.__imageRenderer.render();
+    // this.__lineRenderer.render();
+    // this.__pointRenderer.render();
     this._renderers.get(this._currentRenderer)?.renderer.render();
   }
 }

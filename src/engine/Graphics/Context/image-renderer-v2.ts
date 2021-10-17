@@ -2,8 +2,8 @@ import { WebGLGraphicsContextInfo } from "./ExcaliburGraphicsContextWebGL";
 import { Renderer } from "./renderer";
 import { Shader } from "./shader";
 
-import { imageVertexSource } from './shaders/image-vertex-v2.glsl';
-import { imageFragmentSource } from './shaders/image-fragment-v2.glsl';
+import imageVertexSource from './shaders/image-vertex-v2.glsl';
+import imageFragmentSource from './shaders/image-fragment-v2.glsl';
 import { TextureLoader } from "./texture-loader";
 import { HTMLImageSource } from "..";
 import { ensurePowerOfTwo } from "./webgl-util";
@@ -15,7 +15,7 @@ export class ImageRendererV2 implements Renderer {
   private _MAX_IMAGES_PER_DRAW: number = 2000;
   private _imageCount: number = 0;
 
-  private _shader!: Shader;
+  public shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
   private _info!: WebGLGraphicsContextInfo
@@ -24,21 +24,17 @@ export class ImageRendererV2 implements Renderer {
   private _buffer!: WebGLBuffer;
   private _vertIndex = 0; // starts at 0
 
-  constructor() {
-    // this._shader = shader;
-  }
-
   /**
    * Initialize render, builds shader and initialized webgl buffers
    */
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo) {
     this._gl = gl;
     this._info = info;
-    this._shader = this._buildShader(gl, info);
+    this.shader = this._buildShader(gl, info);
     const verticesPerCommand = 6;
     // Initialize VBO
     // https://groups.google.com/forum/#!topic/webgl-dev-list/vMNXSNRAg8M
-    this._vertices = new Float32Array(this._shader.vertexAttributeSize * verticesPerCommand * this._MAX_IMAGES_PER_DRAW);
+    this._vertices = new Float32Array(this.shader.vertexAttributeSize * verticesPerCommand * this._MAX_IMAGES_PER_DRAW);
     this._buffer = gl.createBuffer() ?? new Error("WebGL - Could not create vertex buffer for ImageRenderer");
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
     gl.bufferData(gl.ARRAY_BUFFER, this._vertices, gl.DYNAMIC_DRAW);
@@ -259,25 +255,26 @@ export class ImageRendererV2 implements Renderer {
     this._vertices[this._vertIndex++] = textureId;
     // opacity
     this._vertices[this._vertIndex++] = opacity;
+    // this.render();
   }
 
   render(): void {
     const gl = this._gl;
-    this._shader.use();
-
     // Ship geometry to graphics hardware
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
+    this.shader.use();
+
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertices);
 
     // Bind textures to
     this._bindTextures(gl);
 
     // Draw all the quads
-    gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this._shader.vertexAttributeSize);
+    gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this.shader.vertexAttributeSize);
 
     // Diags
     GraphicsDiagnostics.DrawCallCount++;
-    GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this._shader.vertexAttributeSize;
+    GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this.shader.vertexAttributeSize;
 
     // Reset
     this._vertIndex = 0;

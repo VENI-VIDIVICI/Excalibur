@@ -6,6 +6,7 @@ import { Pool, Poolable } from '../../Util/Pool';
 import { WebGLGraphicsContextInfo } from '..';
 
 export interface Renderer {
+  shader: Shader;
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void;
   render(): void;
 }

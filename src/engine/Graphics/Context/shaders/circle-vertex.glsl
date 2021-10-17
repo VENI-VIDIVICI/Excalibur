@@ -1,8 +1,8 @@
 attribute vec4 a_position;
 
 // UV coordinate
-attribute vec2 a_texcoord;
-varying vec2 v_texcoord;
+attribute vec2 a_uv;
+varying vec2 v_uv;
 
 // Opacity 
 attribute float a_opacity;
@@ -24,8 +24,8 @@ void main() {
    // Set the vertex position using the ortho transform matrix
    gl_Position = u_matrix * a_position;
 
-   v_texcoord = a_texcoord;
-
+   // Pass through UV coords
+   v_uv = a_uv;
    // Pass through the Opacity to the fragment shader
    v_opacity = a_opacity;
    // Pass through the color to the fragment shader

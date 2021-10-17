@@ -210,12 +210,12 @@ export class ExcaliburGraphicsContext2DCanvas implements ExcaliburGraphicsContex
     this.__ctx.restore();
   }
 
-  public register<T extends Renderer>(name: string, renderer: T, handler: (renderer: T, ...args: any[]) => void) {
-    throw new Error('')
+  public register<T extends Renderer>(_name: string, _renderer: T, _handler: (renderer: T, ...args: any[]) => void) {
+    throw new Error('Not implemented')
   }
 
-  public draw(name: string, ...args: any[]) {
-    throw new Error('')
+  public draw(_name: string, ..._args: any[]) {
+    throw new Error('Not implemented')
   }
 
   debug = new ExcaliburGraphicsContext2DCanvasDebug(this);

@@ -542,6 +542,7 @@ player.graphics.onPostDraw = (ctx: ex.ExcaliburGraphicsContext) => {
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -100, 0, 64, 48);
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -200, 0, 64, 48);
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -300, 0, 64, 48);
+  ctx.draw<ex.RectangleRenderer>('rectangle', ex.vec(0, -200), 200, 200, ex.Color.Transparent, 30, ex.Color.Black, 2);
   ctx.restore();
   // ctx.debug.drawLine(ex.vec(0, 0), ex.vec(200, 0));
   // ctx.debug.drawPoint(ex.vec(0, 0), { size: 20, color: ex.Color.Black });

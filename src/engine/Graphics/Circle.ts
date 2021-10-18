@@ -36,7 +36,7 @@ export class Circle extends Graphic {
   }
 
   protected _drawImage(ex: ExcaliburGraphicsContext, x: number, y: number): void {
-    ex.draw('circle', vec(x, y), this.radius, this.color, this.strokeColor, this.strokeWidth);
+    ex.draw('circle', vec(x + this.radius, y + this.radius), this.radius, this.color, this.strokeColor, this.strokeWidth);
   }
 
   public clone(): Circle {

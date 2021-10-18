@@ -14,6 +14,7 @@ import { Collider } from './Collider';
 import { ClosestLineJumpTable } from './ClosestLineJumpTable';
 import { Transform, TransformComponent } from '../../EntityComponentSystem';
 import { ExcaliburGraphicsContext } from '../../Graphics/Context/ExcaliburGraphicsContext';
+import { CircleRenderer } from '../../Graphics/Context/circle-renderer';
 
 export interface CircleColliderOptions {
   /**
@@ -240,7 +241,9 @@ export class CircleCollider extends Collider {
   public debug(ex: ExcaliburGraphicsContext, color: Color) {
     const tx = this._transform as TransformComponent;
     const pos = tx?.globalPos ? tx?.globalPos.add(this.offset) : this.offset;
-    ex.drawCircle(pos, this.radius, color);
+    // ex.drawCircle(pos, this.radius, color);
+    ex.draw<CircleRenderer>('circle',pos, this.radius, Color.Transparent, color, 3);
+  
   }
 
   /* istanbul ignore next */

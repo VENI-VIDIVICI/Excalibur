@@ -29,5 +29,6 @@ export * from './Context/ExcaliburGraphicsContextWebGL';
 export * from './Context/line-renderer';
 export * from './Context/image-renderer-v2';
 export * from './Context/circle-renderer';
+export * from './Context/rectangle-renderer';
 
 export * from './Context/debug-text';

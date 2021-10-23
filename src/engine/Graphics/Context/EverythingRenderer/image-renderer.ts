@@ -1,16 +1,16 @@
-import { Shader } from './shader';
-import imageVertexSource from './shaders/image-vertex.glsl';
-import imageFragmentSource from './shaders/image-fragment.glsl';
-import { BatchCommand } from './batch';
+import { Shader } from '../shader';
+import imageVertexSource from './image-vertex.glsl';
+import imageFragmentSource from './image-fragment.glsl';
+import { BatchCommand } from '../batch';
 import { DrawCommandType, DrawImageCommand } from './draw-image-command';
-import { Graphic } from '../Graphic';
-import { ensurePowerOfTwo } from './webgl-util';
-import { BatchRenderer } from './renderer';
-import { WebGLGraphicsContextInfo } from './ExcaliburGraphicsContextWebGL';
-import { TextureLoader } from './texture-loader';
-import { HTMLImageSource } from './ExcaliburGraphicsContext';
-import { Color } from '../../Color';
-import { Vector } from '../..';
+import { Graphic } from '../../Graphic';
+import { ensurePowerOfTwo } from '../webgl-util';
+import { BatchRenderer } from '../batch-renderer';
+import { WebGLGraphicsContextInfo } from '../ExcaliburGraphicsContextWebGL';
+import { TextureLoader } from '../texture-loader';
+import { HTMLImageSource } from '../ExcaliburGraphicsContext';
+import { Color } from '../../../Color';
+import { Vector } from '../../..';
 
 export class BatchImage extends BatchCommand<DrawImageCommand> {
   public textures: WebGLTexture[] = [];
@@ -103,6 +103,7 @@ export class BatchImage extends BatchCommand<DrawImageCommand> {
 }
 
 export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
+  public readonly type = 'ex.image';
   constructor(gl: WebGLRenderingContext, private _contextInfo: WebGLGraphicsContextInfo) {
     super({
       gl,

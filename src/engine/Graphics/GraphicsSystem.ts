@@ -94,6 +94,7 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
     this._graphicsContext.flush();
     this._engine.stats.currFrame.graphics.drawnImages = GraphicsDiagnostics.DrawnImagesCount;
     this._engine.stats.currFrame.graphics.drawCalls = GraphicsDiagnostics.DrawCallCount;
+    this._engine.stats.currFrame.graphics.drawRenderer = GraphicsDiagnostics.DrawRenderer;
   }
 
   private _clearScreen(): void {

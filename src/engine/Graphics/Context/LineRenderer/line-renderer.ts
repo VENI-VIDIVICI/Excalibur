@@ -1,12 +1,12 @@
-import { Vector } from '../../Math/vector';
-import { Color } from '../../Color';
-import { Shader } from './shader';
-import lineVertexSource from './shaders/line-vertex.glsl';
-import lineFragmentSource from './shaders/line-fragment.glsl';
-import { BatchRenderer } from './renderer';
-import { BatchCommand } from './batch';
-import { WebGLGraphicsContextInfo } from './ExcaliburGraphicsContextWebGL';
-import { Pool, Poolable } from '../../Util/Pool';
+import { Vector } from '../../../Math/vector';
+import { Color } from '../../../Color';
+import { Shader } from '../shader';
+import lineVertexSource from './line-vertex.glsl';
+import lineFragmentSource from './line-fragment.glsl';
+import { BatchRenderer } from '../batch-renderer';
+import { BatchCommand } from '../batch';
+import { WebGLGraphicsContextInfo } from '../ExcaliburGraphicsContextWebGL';
+import { Pool, Poolable } from '../../../Util/Pool';
 
 export class DrawLine implements Poolable {
   _pool?: Pool<this>;
@@ -25,6 +25,7 @@ export class DrawLine implements Poolable {
 }
 
 export class LineRenderer extends BatchRenderer<DrawLine> {
+  public readonly type = 'line';
   constructor(gl: WebGLRenderingContext, private _contextInfo: WebGLGraphicsContextInfo) {
     super({ gl, command: DrawLine, verticesPerCommand: 2 });
     this.init();
@@ -37,6 +38,9 @@ export class LineRenderer extends BatchRenderer<DrawLine> {
     shader.addAttribute('a_color', 4, gl.FLOAT);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     return shader;
+  }
+  draw(start: Vector, end: Vector, color: Color) {
+    this.addLine(start, end, color);
   }
 
   addLine(start: Vector, end: Vector, color: Color) {

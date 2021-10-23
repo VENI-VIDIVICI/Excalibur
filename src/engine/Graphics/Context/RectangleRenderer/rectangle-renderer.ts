@@ -1,13 +1,14 @@
-import { GraphicsDiagnostics } from "../GraphicsDiagnostics";
-import { WebGLGraphicsContextInfo } from "./ExcaliburGraphicsContextWebGL";
-import { Renderer } from "./renderer";
-import { Shader } from "./shader";
-import rectangleVertexSource from './shaders/rectangle-vertex.glsl';
-import rectangleFragmentSource from './shaders/rectangle-fragment.glsl';
-import { vec, Vector } from "../../Math/vector";
-import { Color } from "../../Color";
+import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
+import { WebGLGraphicsContextInfo } from "../ExcaliburGraphicsContextWebGL";
+import { Renderer } from "../renderer";
+import { Shader } from "../shader";
+import rectangleVertexSource from './rectangle-vertex.glsl';
+import rectangleFragmentSource from './rectangle-fragment.glsl';
+import { vec, Vector } from "../../../Math/vector";
+import { Color } from "../../../Color";
 
 export class RectangleRenderer implements Renderer {
+  public readonly type = 'rectangle';
   shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
@@ -45,7 +46,7 @@ export class RectangleRenderer implements Renderer {
     }
     return false;
   }
-  draw(pos: Vector, width: number, height: number, color: Color, borderRadius: number = 0, stroke?: Color, strokeThickness: number = 0): void {
+  draw(pos: Vector, width: number, height: number, color: Color, borderRadius: number = 0, stroke: Color = Color.Transparent, strokeThickness: number = 0): void {
     if (this._isFull()) {
       this.render();
     }
@@ -236,6 +237,7 @@ export class RectangleRenderer implements Renderer {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this.shader.vertexAttributeSize);
 
     // Diags
+    GraphicsDiagnostics.DrawRenderer.push(this.constructor.name);
     GraphicsDiagnostics.DrawCallCount++;
     GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this.shader.vertexAttributeSize;
 

@@ -117,6 +117,19 @@ export class Shader {
     };
   }
 
+  public addUniformInteger(name: string, data: number) {
+    if (!data) {
+      throw Error(`Shader Uniform Integery Array '${name}' was set to null or undefined`);
+    }
+    const gl = this._gl;
+    this.uniforms[name] = {
+      name,
+      type: 'number',
+      location: gl.getUniformLocation(this.program, name) ?? Error(`Could not find uniform matrix [${name}]`),
+      data: data
+    };
+  }
+
   /**
    * Add attributes in the order they appear in the VBO
    * @param name Name of the attribute in the shader source
@@ -212,6 +225,10 @@ export class Shader {
         }
         case 'numbers': {
           gl.uniform1iv(uniform.location, uniform.data);
+          break;
+        }
+        case 'number': {
+          gl.uniform1i(uniform.location, uniform.data);
           break;
         }
       }

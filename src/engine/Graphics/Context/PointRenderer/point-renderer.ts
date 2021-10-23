@@ -1,12 +1,12 @@
-import { Shader } from './shader';
-import pointVertexSource from './shaders/point-vertex.glsl';
-import pointFragmentSource from './shaders/point-fragment.glsl';
-import { Vector } from '../../Math/vector';
-import { Color } from '../../Color';
-import { BatchRenderer } from './renderer';
-import { BatchCommand } from './batch';
-import { WebGLGraphicsContextInfo } from './ExcaliburGraphicsContextWebGL';
-import { Pool, Poolable } from '../../Util/Pool';
+import { Shader } from '../shader';
+import pointVertexSource from './point-vertex.glsl';
+import pointFragmentSource from './point-fragment.glsl';
+import { Vector } from '../../../Math/vector';
+import { Color } from '../../../Color';
+import { BatchRenderer } from '../batch-renderer';
+import { BatchCommand } from '../batch';
+import { WebGLGraphicsContextInfo } from '../ExcaliburGraphicsContextWebGL';
+import { Pool, Poolable } from '../../../Util/Pool';
 // import { Random } from '../../Math/Index';
 
 export class DrawPoint implements Poolable {
@@ -26,6 +26,7 @@ export class DrawPoint implements Poolable {
 }
 
 export class PointRenderer extends BatchRenderer<DrawPoint> {
+  public readonly type = 'point';
   constructor(gl: WebGLRenderingContext, private _contextInfo: WebGLGraphicsContextInfo) {
     super({ gl, command: DrawPoint, verticesPerCommand: 1 });
     this.init();
@@ -39,6 +40,10 @@ export class PointRenderer extends BatchRenderer<DrawPoint> {
     shader.addAttribute('a_size', 1, gl.FLOAT);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     return shader;
+  }
+
+  draw(point: Vector, color: Color, size: number) {
+    this.addPoint(point, color, size);
   }
 
   addPoint(point: Vector, color: Color, size: number) {

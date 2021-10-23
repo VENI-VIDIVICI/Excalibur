@@ -14,7 +14,7 @@ import { Collider } from './Collider';
 import { ClosestLineJumpTable } from './ClosestLineJumpTable';
 import { Transform, TransformComponent } from '../../EntityComponentSystem';
 import { ExcaliburGraphicsContext } from '../../Graphics/Context/ExcaliburGraphicsContext';
-import { CircleRenderer } from '../../Graphics/Context/circle-renderer';
+import { CircleRenderer } from '../../Graphics/Context/CircleRenderer/circle-renderer';
 
 export interface CircleColliderOptions {
   /**

@@ -136,7 +136,9 @@ export class ParticleImpl extends Entity {
         this.graphics.opacity = this.opacity;
         const tmpColor = this._currentColor.clone();
         tmpColor.a = 1;
-        ctx.debug.drawPoint(vec(0, 0), { color: tmpColor, size: this.particleSize });
+        ctx.drawRectangle(vec(0, 0), this.particleSize, this.particleSize, tmpColor);
+        // ctx.drawCircle(vec(0, 0), this.particleSize, tmpColor);
+        // ctx.debug.drawPoint(vec(0, 0), { color: tmpColor, size: this.particleSize });
         ctx.restore();
       };
     }

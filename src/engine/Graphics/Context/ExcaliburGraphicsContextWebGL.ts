@@ -14,16 +14,16 @@ import { Vector, vec } from '../../Math/vector';
 import { Color } from '../../Color';
 import { StateStack } from './state-stack';
 // import { Logger } from '../../Util/Log';
-import { LineRenderer } from './line-renderer';
-import { ImageRenderer } from './image-renderer';
-import { PointRenderer } from './point-renderer';
+import { LineRenderer } from './LineRenderer/line-renderer';
+import { ImageRenderer } from './EverythingRenderer/image-renderer';
+import { PointRenderer } from './PointRenderer/point-renderer';
 import { Canvas } from '../Canvas';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { DebugText } from './debug-text';
-import { Renderer } from './renderer';
-import { ImageRendererV2 } from './image-renderer-v2';
-import { CircleRenderer } from './circle-renderer';
-import { RectangleRenderer } from './rectangle-renderer';
+import { Renderer } from "./renderer";
+import { ImageRendererV2 } from './ImageRendererV2/image-renderer-v2';
+import { CircleRenderer } from './CircleRenderer/circle-renderer';
+import { RectangleRenderer } from './RectangleRenderer/rectangle-renderer';
 
 class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -52,7 +52,7 @@ class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
    * @param lineOptions
    */
   drawLine(start: Vector, end: Vector, lineOptions: LineGraphicsOptions = { color: Color.Black }): void {
-    this._webglCtx.__lineRenderer.addLine(start, end, lineOptions.color);
+    this._webglCtx.draw<LineRenderer>('line', start, end, lineOptions.color);
   }
 
   /**
@@ -61,7 +61,7 @@ class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
    * @param pointOptions
    */
   drawPoint(point: Vector, pointOptions: PointGraphicsOptions = { color: Color.Black, size: 5 }): void {
-    this._webglCtx.__pointRenderer.addPoint(point, pointOptions.color, pointOptions.size);
+    this._webglCtx.draw<PointRenderer>('point', point, pointOptions.color, pointOptions.size);
   }
 
   drawText(text: string, pos: Vector) {
@@ -98,23 +98,6 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
 
   private _renderers = new Map<string, Renderer>();
   private _currentRenderer: string;
-  /**
-   * Meant for internal use only. Access the internal context at your own risk and no guarantees this will exist in the future.
-   * @internal
-   */
-  public __pointRenderer: PointRenderer;
-
-  /**
-   * Meant for internal use only. Access the internal context at your own risk and no guarantees this will exist in the future.
-   * @internal
-   */
-  public __lineRenderer: LineRenderer;
-
-  /**
-   * Meant for internal use only. Access the internal context at your own risk and no guarantees this will exist in the future.
-   * @internal
-   */
-  public __imageRenderer: ImageRenderer;
 
   public snapToPixel: boolean = true;
 
@@ -171,10 +154,9 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.register('circle', new CircleRenderer);
     this.register('rectangle', new RectangleRenderer);
 
-    this.__pointRenderer = new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
-    this.__lineRenderer = new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
-    this.__imageRenderer = new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state });
-    this.register('ogimage', this.__imageRenderer);
+    this.register('point', new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
+    this.register('line', new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
+    this.register('ex.image', new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
 
     // 2D ctx shim
     this._canvas = new Canvas({
@@ -184,13 +166,14 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this.__ctx = this._canvas.ctx;
   }
 
-  public register<T extends Renderer>(name: string, renderer: T) {
+  public register<T extends Renderer>(name: T['type'], renderer: T) {
     this._renderers.set(name, renderer);
     renderer.initialize(this.__gl, { matrix: this._ortho, transform: this._transform, state: this._state });
   }
 
-  public draw<TRenderer extends Renderer>(name: string, ...args: Parameters<TRenderer['draw']>) {
-    // TODO sort by renderer type if able, preserve explicit z?
+  public draw<TRenderer extends Renderer>(name: TRenderer['type'], ...args: Parameters<TRenderer['draw']>) {
+    // TODO sort by renderer type if able?, preserve explicit z?
+    // We might need to come up with a smarter way to do this
     
     if (this._currentRenderer !== name) {
       this._renderers.get(this._currentRenderer)?.render();
@@ -199,7 +182,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     const render = this._renderers.get(name);
     if (render) {
       this._currentRenderer = name;
-      render.draw(...args);
+      render.draw.call(render, ...args);
     }
   }
 
@@ -210,9 +193,6 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
   public updateViewport(): void {
     const gl = this.__gl;
     this._ortho = this._ortho = Matrix.ortho(0, gl.canvas.width, gl.canvas.height, 0, 400, -400);
-    this.__pointRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
-    this.__lineRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
-    this.__imageRenderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     for (let renderer of this._renderers.values()) {
       renderer.shader.addUniformMatrix('u_matrix', this._ortho.data);
     }
@@ -247,7 +227,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     dheight?: number
   ): void {
     this.draw<ImageRendererV2>('image', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
-    // this.draw<ImageRenderer>('ogimage', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
+    //this.draw<ImageRenderer>('ex.image', image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
     // if (swidth === 0 || sheight === 0) {
     //   return; // zero dimension dest exit early
     // } else if (dwidth === 0 || dheight === 0) {
@@ -268,13 +248,14 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     // this.__imageRenderer.addImage(image, sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
   }
 
-  public drawLine(start: Vector, end: Vector, color: Color, thickness = 1) {
-    this.__imageRenderer.addLine(color, start, end, thickness);
+  public drawLine(start: Vector, end: Vector, color: Color, _thickness = 1) {
+    // todo thickness using the rectangle renderer
+    this.draw<LineRenderer>('line', start, end, color);
     // this.draw<RectangleRenderer>('rectangle', )
     // this.__lineRenderer.addLine(start, end, color);
   }
 
-  public drawRectangle(pos: Vector, width: number, height: number, color: Color) {
+  public drawRectangle(pos: Vector, width: number, height: number, color: Color = Color.Black) {
     // this.__imageRenderer.addRectangle(color, pos, width, height);
     this.draw<RectangleRenderer>('rectangle', pos, width, height, color);
   }
@@ -328,9 +309,6 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     const gl = this.__gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    this.__imageRenderer.render();
-    this.__lineRenderer.render();
-    this.__pointRenderer.render();
     this._renderers.get(this._currentRenderer)?.render();
   }
 }

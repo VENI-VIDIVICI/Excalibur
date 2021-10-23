@@ -1,15 +1,16 @@
-import { WebGLGraphicsContextInfo } from "./ExcaliburGraphicsContextWebGL";
-import { Renderer } from "./renderer";
-import { Shader } from "./shader";
+import { WebGLGraphicsContextInfo } from "../ExcaliburGraphicsContextWebGL";
+import { Renderer } from "../renderer";
+import { Shader } from "../shader";
 
-import imageVertexSource from './shaders/image-vertex-v2.glsl';
-import imageFragmentSource from './shaders/image-fragment-v2.glsl';
-import { TextureLoader } from "./texture-loader";
-import { HTMLImageSource } from "..";
-import { ensurePowerOfTwo } from "./webgl-util";
-import { GraphicsDiagnostics } from "../GraphicsDiagnostics";
+import imageVertexSource from './image-vertex-v2.glsl';
+import imageFragmentSource from './image-fragment-v2.glsl';
+import { TextureLoader } from "../texture-loader";
+import { HTMLImageSource } from "../..";
+import { ensurePowerOfTwo } from "../webgl-util";
+import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
 
 export class ImageRendererV2 implements Renderer {
+  public readonly type = 'image';
   private _MAX_TEXTURES: number = 0;
   private _textures: WebGLTexture[] = [];
   private _MAX_IMAGES_PER_DRAW: number = 2000;
@@ -273,8 +274,9 @@ export class ImageRendererV2 implements Renderer {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this.shader.vertexAttributeSize);
 
     // Diags
+    GraphicsDiagnostics.DrawRenderer.push(this.constructor.name);
     GraphicsDiagnostics.DrawCallCount++;
-    GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this.shader.vertexAttributeSize;
+    GraphicsDiagnostics.DrawnImagesCount += this._imageCount;
 
     // Reset
     this._vertIndex = 0;

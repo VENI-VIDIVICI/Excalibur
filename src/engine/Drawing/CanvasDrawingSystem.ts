@@ -73,6 +73,7 @@ export class CanvasDrawingSystem extends System<TransformComponent | CanvasDrawC
 
     this._engine.stats.currFrame.graphics.drawnImages = GraphicsDiagnostics.DrawnImagesCount;
     this._engine.stats.currFrame.graphics.drawCalls = GraphicsDiagnostics.DrawCallCount;
+    this._engine.stats.currFrame.graphics.drawRenderer = GraphicsDiagnostics.DrawRenderer;
   }
 
   private _applyTransform(entity: Entity) {

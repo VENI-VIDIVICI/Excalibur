@@ -1,3 +1,5 @@
+import { Matrix, vec, Vector } from "../..";
+
 /**
  * Checks if the current number is a power of two
  */
@@ -24,4 +26,34 @@ export function ensurePowerOfTwo(x: number): number {
     return nextHighestPowerOfTwo(x);
   }
   return x;
+}
+
+export function buildQuad(pos: Vector, width: number, height: number, anchor: Vector = Vector.Zero, transform?: Matrix): Vector[] {
+  let index = 0;
+  let quad = [];
+  const offsetX = -width * anchor.x;
+  const offsetY = -height * anchor.y
+  const topLeft =     pos.add(vec(0 + offsetX, 0 + offsetY));
+  const topRight =    pos.add(vec(width + offsetX, 0 + offsetY));
+  const bottomRight = pos.add(vec(width + offsetX, height + offsetY));
+  const bottomLeft =  pos.add(vec(0 + offsetX, height + offsetY));
+  transform = transform ?? Matrix.identity();
+  quad[index++] = transform.multv(topLeft);
+  quad[index++] = transform.multv(topRight);
+  quad[index++] = transform.multv(bottomLeft);
+  quad[index++] = transform.multv(bottomLeft);
+  quad[index++] = transform.multv(topRight);
+  quad[index++] = transform.multv(bottomRight);
+  return quad;
+}
+
+export function buildQuadUV(uvx0: number, uvy0: number, uvx1: number, uvy1: number): Vector[] {
+  return [
+    vec(uvx0, uvy0),
+    vec(uvx0, uvy1),
+    vec(uvx1, uvy0),
+    vec(uvx1, uvy0),
+    vec(uvx0, uvy1),
+    vec(uvx1, uvy1)
+  ]
 }

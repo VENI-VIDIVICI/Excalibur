@@ -144,6 +144,7 @@ export interface PhysicsStatistics {
 export interface GraphicsStatistics {
   drawCalls: number;
   drawnImages: number;
+  drawRenderer: string[];
 }
 
 /**
@@ -336,7 +337,8 @@ export class FrameStats implements FrameStatistics {
 
   private _graphicsStats: GraphicsStatistics = {
     drawCalls: 0,
-    drawnImages: 0
+    drawnImages: 0,
+    drawRenderer: [],
   };
 
   /**

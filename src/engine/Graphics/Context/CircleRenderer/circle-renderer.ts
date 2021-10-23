@@ -1,13 +1,14 @@
-import { Color } from "../../Color";
-import { vec, Vector } from "../../Math/vector";
-import { WebGLGraphicsContextInfo } from "./ExcaliburGraphicsContextWebGL";
-import { Renderer } from "./renderer";
-import { Shader } from "./shader";
-import circleVertexSource from './shaders/circle-vertex.glsl';
-import circleFragmentSource from './shaders/circle-fragment.glsl';
-import { GraphicsDiagnostics } from "../GraphicsDiagnostics";
+import { Color } from "../../../Color";
+import { vec, Vector } from "../../../Math/vector";
+import { WebGLGraphicsContextInfo } from "../ExcaliburGraphicsContextWebGL";
+import { Renderer } from "../renderer";
+import { Shader } from "../shader";
+import circleVertexSource from './circle-vertex.glsl';
+import circleFragmentSource from './circle-fragment.glsl';
+import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
 
 export class CircleRenderer implements Renderer {
+  public readonly type = 'circle';
   shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
@@ -227,8 +228,9 @@ export class CircleRenderer implements Renderer {
     gl.drawArrays(gl.TRIANGLES, 0, this._vertIndex / this.shader.vertexAttributeSize);
 
     // Diags
+    GraphicsDiagnostics.DrawRenderer.push(this.constructor.name);
     GraphicsDiagnostics.DrawCallCount++;
-    GraphicsDiagnostics.DrawnImagesCount += this._vertIndex / this.shader.vertexAttributeSize;
+    GraphicsDiagnostics.DrawnImagesCount += this._circleCount;
 
     // Reset
     this._vertIndex = 0;

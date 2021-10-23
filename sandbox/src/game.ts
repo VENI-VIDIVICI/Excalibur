@@ -534,11 +534,13 @@ player.addChild(healthbar);
 player.graphics.onPostDraw = (ctx: ex.ExcaliburGraphicsContext) => {
   ctx.save();
   ctx.opacity = .5;
+  ctx.restore();
+  ctx.save();
+  ctx.opacity = .5;
   ctx.draw<ex.CircleRenderer>('circle', ex.vec(0, 0), 50, ex.Color.Green, ex.Color.Black, 10);
   ctx.draw<ex.CircleRenderer>('circle', ex.vec(100, 0), 50, ex.Color.Transparent, ex.Color.Black, 10);
   ctx.draw<ex.CircleRenderer>('circle', ex.vec(0, 100), 50, ex.Color.Green, ex.Color.Black, 10);
   ctx.draw<ex.CircleRenderer>('circle', ex.vec(100, 100), 50, ex.Color.Green, ex.Color.Black, 10);
-  ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, 0, 0, 64, 48);
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -100, 0, 64, 48);
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -200, 0, 64, 48);
   ctx.draw<ex.ImageRendererV2>('image', blockAnimation.image.image, 0, 0, 64, 48, -300, 0, 64, 48);

@@ -4,7 +4,7 @@ attribute vec2 a_position;
 attribute vec2 a_uv;
 varying vec2 v_uv;
 
-uniform mat3 u_matrix;
+uniform mat4 u_matrix;
 
 void main() {
     v_uv = a_uv;

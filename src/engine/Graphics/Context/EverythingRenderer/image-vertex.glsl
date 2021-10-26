@@ -1,4 +1,4 @@
-attribute vec4 a_position;
+attribute vec3 a_position;
 
 // Opacity 
 attribute float a_opacity;
@@ -26,7 +26,7 @@ uniform mat4 u_matrix;
 
 void main() {
    // Set the vertex position using the ortho transform matrix
-   gl_Position = u_matrix * a_position;
+   gl_Position = u_matrix * vec4(a_position, 1.0);
 
    // Pass through the Opacity to the fragment shader
    v_opacity = a_opacity;

@@ -46,14 +46,20 @@ export class ImageRendererV2 implements Renderer {
     // Initialilze default batch rendering shader
     this._MAX_TEXTURES = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
     const shader = new Shader(
-      gl,
       imageVertexSource,
       this._transformFragmentSource(imageFragmentSource, this._MAX_TEXTURES)
     );
-    shader.addAttribute('a_position', 3, gl.FLOAT);
-    shader.addAttribute('a_texcoord', 2, gl.FLOAT);
-    shader.addAttribute('a_textureIndex', 1, gl.FLOAT);
-    shader.addAttribute('a_opacity', 1, gl.FLOAT);
+    shader.compile(gl);
+    // shader.setAttribute('a_position', 3, gl.FLOAT);
+    // shader.setAttribute('a_texcoord', 2, gl.FLOAT);
+    // shader.setAttribute('a_textureIndex', 1, gl.FLOAT);
+    // shader.setAttribute('a_opacity', 1, gl.FLOAT);
+    shader.setVertexAttributeLayout([
+      'a_position',
+      'a_texcoord',
+      'a_textureIndex',
+      'a_opacity'
+    ]);
     shader.addUniformMatrix('u_matrix', info.matrix.data);
     // Initialize texture slots to [0, 1, 2, 3, 4, .... this._MAX_TEXTURES]
     shader.addUniformIntegerArray(
@@ -181,7 +187,7 @@ export class ImageRendererV2 implements Renderer {
     // (0, 0, z) z-index doesn't work in batch rendering between batches
     this._vertices[this._vertIndex++] = quad[0][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[0][1]; //y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
@@ -194,7 +200,7 @@ export class ImageRendererV2 implements Renderer {
     // (0, 1)
     this._vertices[this._vertIndex++] = quad[1][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[1][1]; // y + 1 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
@@ -207,7 +213,7 @@ export class ImageRendererV2 implements Renderer {
     // (1, 0)
     this._vertices[this._vertIndex++] = quad[2][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[2][1]; // y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; //1;
@@ -220,7 +226,7 @@ export class ImageRendererV2 implements Renderer {
     // (1, 0)
     this._vertices[this._vertIndex++] = quad[3][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[3][1]; // y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; //1;
@@ -233,7 +239,7 @@ export class ImageRendererV2 implements Renderer {
     // (0, 1)
     this._vertices[this._vertIndex++] = quad[4][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[4][1]; // y + 1 * height
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
@@ -246,7 +252,7 @@ export class ImageRendererV2 implements Renderer {
     // (1, 1)
     this._vertices[this._vertIndex++] = quad[5][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[5][1]; // y + 1 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; // 1;

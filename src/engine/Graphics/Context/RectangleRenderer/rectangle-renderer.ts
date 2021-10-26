@@ -22,14 +22,24 @@ export class RectangleRenderer implements Renderer {
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void {
     this._gl = gl;
     this._info = info;
-    this.shader = new Shader(gl, rectangleVertexSource, rectangleFragmentSource);
-    this.shader.addAttribute('a_position', 3, gl.FLOAT);
-    this.shader.addAttribute('a_uv', 2, gl.FLOAT);
-    this.shader.addAttribute('a_radius', 1, gl.FLOAT);
-    this.shader.addAttribute('a_opacity', 1, gl.FLOAT);
-    this.shader.addAttribute('a_color', 4, gl.FLOAT);
-    this.shader.addAttribute('a_strokeColor', 4, gl.FLOAT);
-    this.shader.addAttribute('a_strokeThickness', 1, gl.FLOAT);
+    this.shader = new Shader(rectangleVertexSource, rectangleFragmentSource);
+    this.shader.compile(this._gl);
+    // this.shader.setAttribute('a_position', 3, gl.FLOAT);
+    // this.shader.setAttribute('a_uv', 2, gl.FLOAT);
+    // this.shader.setAttribute('a_radius', 1, gl.FLOAT);
+    // this.shader.setAttribute('a_opacity', 1, gl.FLOAT);
+    // this.shader.setAttribute('a_color', 4, gl.FLOAT);
+    // this.shader.setAttribute('a_strokeColor', 4, gl.FLOAT);
+    // this.shader.setAttribute('a_strokeThickness', 1, gl.FLOAT);
+    this.shader.setVertexAttributeLayout([
+      'a_position',
+      'a_uv',
+      'a_radius',
+      'a_opacity',
+      'a_color',
+      'a_strokeColor',
+      'a_strokeThickness'
+    ]);
     this.shader.addUniformMatrix('u_matrix', info.matrix.data);
 
     const verticesPerCommand = 6;
@@ -77,7 +87,7 @@ export class RectangleRenderer implements Renderer {
     // (0, 0, z) z-index doesn't work in batch rendering between batches
     this._vertices[this._vertIndex++] = quad[0][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[0][1]; //y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
     this._vertices[this._vertIndex++] = uvy0; // 0;
@@ -101,7 +111,7 @@ export class RectangleRenderer implements Renderer {
     // (0, 1)
     this._vertices[this._vertIndex++] = quad[1][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[1][1]; // y + 1 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
     this._vertices[this._vertIndex++] = uvy1; // 1;
@@ -125,7 +135,7 @@ export class RectangleRenderer implements Renderer {
     // (1, 0)
     this._vertices[this._vertIndex++] = quad[2][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[2][1]; // y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; //1;
@@ -150,7 +160,7 @@ export class RectangleRenderer implements Renderer {
     // (1, 0)
     this._vertices[this._vertIndex++] = quad[3][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[3][1]; // y + 0 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; //1;
@@ -175,7 +185,7 @@ export class RectangleRenderer implements Renderer {
     // (0, 1)
     this._vertices[this._vertIndex++] = quad[4][0]; // x + 0 * width;
     this._vertices[this._vertIndex++] = quad[4][1]; // y + 1 * height
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx0; // 0;
@@ -200,7 +210,7 @@ export class RectangleRenderer implements Renderer {
     // (1, 1)
     this._vertices[this._vertIndex++] = quad[5][0]; // x + 1 * width;
     this._vertices[this._vertIndex++] = quad[5][1]; // y + 1 * height;
-    this._vertices[this._vertIndex++] = 0;
+    // this._vertices[this._vertIndex++] = 0;
 
     // UV coords
     this._vertices[this._vertIndex++] = uvx1; // 1;

@@ -34,10 +34,16 @@ export class PointRenderer extends BatchRenderer<DrawPoint> {
 
   buildShader(gl: WebGLRenderingContext): Shader {
     gl.getExtension('OES_standard_derivatives');
-    const shader = new Shader(gl, pointVertexSource, pointFragmentSource);
-    shader.addAttribute('a_position', 2, gl.FLOAT);
-    shader.addAttribute('a_color', 4, gl.FLOAT);
-    shader.addAttribute('a_size', 1, gl.FLOAT);
+    const shader = new Shader(pointVertexSource, pointFragmentSource);
+    shader.compile(gl);
+    shader.setAttribute('a_position', 2, gl.FLOAT);
+    shader.setAttribute('a_color', 4, gl.FLOAT);
+    shader.setAttribute('a_size', 1, gl.FLOAT);
+    shader.setVertexAttributeLayout([
+      'a_position',
+      'a_color',
+      'a_size'
+    ]);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     return shader;
   }

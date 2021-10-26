@@ -15,7 +15,7 @@ import { Color } from '../../Color';
 import { StateStack } from './state-stack';
 // import { Logger } from '../../Util/Log';
 import { LineRenderer } from './LineRenderer/line-renderer';
-import { ImageRenderer } from './EverythingRenderer/image-renderer';
+// import { ImageRenderer } from './EverythingRenderer/image-renderer';
 import { PointRenderer } from './PointRenderer/point-renderer';
 import { Canvas } from '../Canvas';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
@@ -156,7 +156,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
 
     this.register('point', new PointRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
     this.register('line', new LineRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
-    this.register('ex.image', new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
+    // this.register('ex.image', new ImageRenderer(gl, { matrix: this._ortho, transform: this._transform, state: this._state }));
 
     // 2D ctx shim
     this._canvas = new Canvas({

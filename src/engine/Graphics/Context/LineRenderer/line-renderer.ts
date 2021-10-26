@@ -32,10 +32,14 @@ export class LineRenderer extends BatchRenderer<DrawLine> {
   }
 
   buildShader(gl: WebGLRenderingContext) {
-    const shader = new Shader(gl, lineVertexSource, lineFragmentSource);
-
-    shader.addAttribute('a_position', 2, gl.FLOAT);
-    shader.addAttribute('a_color', 4, gl.FLOAT);
+    const shader = new Shader(lineVertexSource, lineFragmentSource);
+    shader.compile(gl);
+    shader.setAttribute('a_position', 2, gl.FLOAT);
+    shader.setAttribute('a_color', 4, gl.FLOAT);
+    shader.setVertexAttributeLayout([
+      'a_position',
+      'a_color',
+    ]);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     return shader;
   }

@@ -1,9 +1,7 @@
 import { Shader } from '../shader';
 import imageVertexSource from './image-vertex.glsl';
 import imageFragmentSource from './image-fragment.glsl';
-import { BatchCommand } from '../batch';
 import { DrawCommandType, DrawImageCommand } from './draw-image-command';
-import { Graphic } from '../../Graphic';
 import { ensurePowerOfTwo } from '../webgl-util';
 import { BatchRenderer } from '../batch-renderer';
 import { WebGLGraphicsContextInfo } from '../ExcaliburGraphicsContextWebGL';
@@ -11,96 +9,7 @@ import { TextureLoader } from '../texture-loader';
 import { HTMLImageSource } from '../ExcaliburGraphicsContext';
 import { Color } from '../../../Color';
 import { Vector } from '../../..';
-
-export class BatchImage extends BatchCommand<DrawImageCommand> {
-  public textures: WebGLTexture[] = [];
-  public commands: DrawImageCommand[] = [];
-  private _graphicMap: { [id: string]: Graphic } = {};
-
-  constructor(public maxDraws: number, public maxTextures: number) {
-    super(maxDraws);
-  }
-
-  isFull() {
-    if (this.commands.length >= this.maxDraws) {
-      return true;
-    }
-    if (this.textures.length >= this.maxTextures) {
-      return true;
-    }
-    return false;
-  }
-
-  canAdd() {
-    if (this.commands.length >= this.maxDraws) {
-      return false;
-    }
-
-    if (this.textures.length < this.maxTextures) {
-      return true;
-    }
-
-    return false;
-  }
-
-  private _isCommandFull() {
-    return this.commands.length >= this.maxDraws;
-  }
-
-  private _isTextureFull() {
-    return this.textures.length >= this.maxTextures;
-  }
-
-  private _wouldAddTexture(command: DrawImageCommand) {
-    return !this._graphicMap[command.image.id];
-  }
-
-  maybeAdd(command: DrawImageCommand): boolean {
-    if ((this._isCommandFull() || this._isTextureFull()) && this._wouldAddTexture(command)) {
-      return false;
-    }
-
-    this.add(command);
-    return true;
-  }
-
-  add(command: DrawImageCommand) {
-    if (command.type === DrawCommandType.Image) {
-      const texture = TextureLoader.load(command.image);
-      if (this.textures.indexOf(texture) === -1) {
-        this.textures.push(texture);
-      }
-    }
-
-    this.commands.push(command);
-  }
-
-  bindTextures(gl: WebGLRenderingContext) {
-    // Bind textures in the correct order
-    for (let i = 0; i < this.maxTextures; i++) {
-      gl.activeTexture(gl.TEXTURE0 + i);
-      gl.bindTexture(gl.TEXTURE_2D, this.textures[i] || this.textures[0]);
-    }
-  }
-
-  getBatchTextureId(command: DrawImageCommand) {
-    if (command.image) {
-      return this.textures.indexOf(TextureLoader.get(command.image));
-    }
-    return -1;
-  }
-
-  dispose() {
-    this.clear();
-    return this;
-  }
-
-  clear() {
-    this.commands.length = 0;
-    this.textures.length = 0;
-    this._graphicMap = {};
-  }
-}
+import { BatchImage } from './batch-image';
 
 export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
   public readonly type = 'ex.image';
@@ -120,14 +29,24 @@ export class ImageRenderer extends BatchRenderer<DrawImageCommand> {
   buildShader(gl: WebGLRenderingContext): Shader {
     // Initialilze default batch rendering shader
     const maxGPUTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-    const shader = new Shader(gl, imageVertexSource, this._transformFragmentSource(imageFragmentSource, maxGPUTextures));
-    shader.addAttribute('a_position', 3, gl.FLOAT);
-    shader.addAttribute('a_texcoord', 2, gl.FLOAT);
-    shader.addAttribute('a_textureIndex', 1, gl.FLOAT);
-    shader.addAttribute('a_opacity', 1, gl.FLOAT);
-    shader.addAttribute('a_color', 4, gl.FLOAT);
-    shader.addAttribute('a_strokeColor', 4, gl.FLOAT);
-    shader.addAttribute('a_strokeThickness', 1, gl.FLOAT);
+    const shader = new Shader(imageVertexSource, this._transformFragmentSource(imageFragmentSource, maxGPUTextures));
+    shader.compile(gl);
+    shader.setVertexAttributeLayout([
+      'a_position',
+      'a_texcoord',
+      'a_textureIndex',
+      'a_opacity',
+      'a_color',
+      'a_strokeColor',
+      'a_strokeThickness'
+    ]);
+    // shader.addAttribute('a_position', 3, gl.FLOAT);
+    // shader.addAttribute('a_texcoord', 2, gl.FLOAT);
+    // shader.addAttribute('a_textureIndex', 1, gl.FLOAT);
+    // shader.addAttribute('a_opacity', 1, gl.FLOAT);
+    // shader.addAttribute('a_color', 4, gl.FLOAT);
+    // shader.addAttribute('a_strokeColor', 4, gl.FLOAT);
+    // shader.addAttribute('a_strokeThickness', 1, gl.FLOAT);
     shader.addUniformMatrix('u_matrix', this._contextInfo.matrix.data);
     // Initialize texture slots to [0, 1, 2, 3, 4, .... maxGPUTextures]
     shader.addUniformIntegerArray(

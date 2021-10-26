@@ -32,6 +32,7 @@ export class ImageRendererV2 implements Renderer {
     this._gl = gl;
     this._info = info;
     this.shader = this._buildShader(gl, info);
+    // Quads have 6 verts
     const verticesPerCommand = 6;
     // Initialize VBO
     // https://groups.google.com/forum/#!topic/webgl-dev-list/vMNXSNRAg8M

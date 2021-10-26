@@ -210,6 +210,17 @@ export class Shader {
     };
   }
 
+
+  public addUniformFloat(name: string, float: number = 0) {
+    const gl = this._gl;
+    this.uniforms[name] = {
+      name,
+      type: '1f',
+      location: gl.getUniformLocation(this.program, name) ?? Error(`Could not find uniform [${name}]`),
+      data: float
+    };
+  }
+
   public addUniformFloat2(name: string, float1: number = 0, float2: number = 0) {
     const gl = this._gl;
     this.uniforms[name] = {
@@ -430,6 +441,10 @@ export class Shader {
         }
         case '2f': {
           gl.uniform2f(uniform.location, uniform.data[0], uniform.data[1]);
+          break;
+        }
+        case '1f': {
+          gl.uniform1f(uniform.location, uniform.data);
           break;
         }
       }

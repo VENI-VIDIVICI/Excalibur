@@ -39,10 +39,10 @@ export function buildQuad(pos: Vector, width: number, height: number, anchor: Ve
   const bottomLeft =  pos.add(vec(0 + offsetX, height + offsetY));
   transform = transform ?? Matrix.identity();
   quad[index++] = transform.multv(topLeft);
-  quad[index++] = transform.multv(topRight);
-  quad[index++] = transform.multv(bottomLeft);
   quad[index++] = transform.multv(bottomLeft);
   quad[index++] = transform.multv(topRight);
+  quad[index++] = transform.multv(topRight);
+  quad[index++] = transform.multv(bottomLeft);
   quad[index++] = transform.multv(bottomRight);
   return quad;
 }

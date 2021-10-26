@@ -24,6 +24,7 @@ import { Renderer } from "./renderer";
 import { ImageRendererV2 } from './ImageRendererV2/image-renderer-v2';
 import { CircleRenderer } from './CircleRenderer/circle-renderer';
 import { RectangleRenderer } from './RectangleRenderer/rectangle-renderer';
+import { TextRenderer } from './TextRenderer/text-renderer';
 
 class ExcaliburGraphicsContextWebGLDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -151,6 +152,7 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     this.register('image', new ImageRendererV2);
+    this.register('text', new TextRenderer);
     this.register('circle', new CircleRenderer);
     this.register('rectangle', new RectangleRenderer);
 

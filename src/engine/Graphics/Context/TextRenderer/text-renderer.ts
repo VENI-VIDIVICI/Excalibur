@@ -46,7 +46,7 @@ export class TextRenderer implements Renderer {
     this.shader.addUniformMatrix('u_matrix', info.matrix.data);
     this.shader.addUniformInteger('u_text_sdf', gl.TEXTURE0);
     this.shader.addUniformFloat('u_smoothing', .05); // smooth step factor .01
-    this.shader.addUniformFloat('u_buffer', 0.85); // how "bold" the text is 0.1
+    this.shader.addUniformFloat('u_buffer', 0.75); // how "bold" the text is 0.1
     this.shader.addUniformFloat('u_opacity', 1.0);
     // this.shader.addUniformFloat('u_outlineSize', 0.01);
     // Quads have 6 verts
@@ -64,9 +64,9 @@ export class TextRenderer implements Renderer {
     }
     return false;
   }
-
+  // TODO update FOnt to produce a sddf
   draw(fontSDFAtlasImage: HTMLImageSource, fontData: SDFData, pos: Vector, text: string): void {
-    if (!this._isFull()) {
+    if (this._isFull()) {
       this.render();
     }
 
@@ -76,6 +76,7 @@ export class TextRenderer implements Renderer {
     // A quad per char
     let cursor = pos;
     for (let char of text) {
+      this._charCount++;
       const charInfo = fontData[char];
       // Use font data to produce size and uv info
       const currentTransform = this._info.transform.current;
@@ -84,8 +85,8 @@ export class TextRenderer implements Renderer {
       
       let uvx0 = charInfo.x / potWidth;
       let uvy0 = charInfo.y / potHeight;
-      let uvx1 = (charInfo.x + charInfo.height) / potWidth;
-      let uvy1 = (charInfo.y + charInfo.width) / potHeight;
+      let uvx1 = (charInfo.x + charInfo.width) / potWidth;
+      let uvy1 = (charInfo.y + charInfo.height) / potHeight;
 
       const quad = buildQuad(cursor, charInfo.width, charInfo.height, Vector.Zero, currentTransform);
       const uvQuad = buildQuadUV(uvx0, uvy0, uvx1, uvy1);
@@ -102,7 +103,6 @@ export class TextRenderer implements Renderer {
         this._vertices[this._vertIndex++] = color.r / 255;
         this._vertices[this._vertIndex++] = color.g / 255;
         this._vertices[this._vertIndex++] = color.b / 255;
-        // this._vertices[this._vertIndex++] = color.a;
       }
     }
   }

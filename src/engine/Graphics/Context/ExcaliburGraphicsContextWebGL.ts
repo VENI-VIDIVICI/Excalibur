@@ -173,7 +173,14 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     renderer.initialize(this.__gl, { matrix: this._ortho, transform: this._transform, state: this._state });
   }
 
+  private _autoBatch = true;
+  private _batches: [string, ...any[]][] = [];
   public draw<TRenderer extends Renderer>(name: TRenderer['type'], ...args: Parameters<TRenderer['draw']>) {
+
+    if (this._autoBatch) {
+      this._batches.push([name, ...args])
+    }
+
     // TODO sort by renderer type if able?, preserve explicit z?
     // We might need to come up with a smarter way to do this
     
@@ -308,6 +315,10 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
    * Flushes all batched rendering to the screen
    */
   flush() {
+    if (this._autoBatch) {
+      
+    }
+
     const gl = this.__gl;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 

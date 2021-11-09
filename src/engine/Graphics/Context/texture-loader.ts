@@ -5,7 +5,9 @@ import { ensurePowerOfTwo, isPowerOfTwo } from './webgl-util';
  * Manages loading image sources into webgl textures, a unique id is associated with all sources
  */
 export class TextureLoader {
+  // Power of two canvas
   private static _POT_CANVAS = document.createElement('canvas');
+  // Power of two context
   private static _POT_CTX = TextureLoader._POT_CANVAS.getContext('2d');
 
   private static _GL: WebGLRenderingContext;

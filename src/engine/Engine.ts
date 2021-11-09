@@ -1070,6 +1070,7 @@ O|===|* >________________>\n\
 
     // Draw debug information
     // TODO don't access ctx directly
+    // TODO this doesn't actually work in webgl
     if (this.isDebug) {
       this.ctx.font = 'Consolas';
       this.ctx.fillStyle = this.debugColor.toString();

@@ -137,6 +137,58 @@ export class ExcaliburGraphicsContextWebGL implements ExcaliburGraphicsContext {
     this._init();
   }
 
+  private _framebuffer: WebGLFramebuffer;
+  private _frameTexture: WebGLTexture;
+  private _setupFramebuffer() {
+    // Allocates frame buffer
+    // TODO would this be per camera eventually?
+    const gl = this.__gl;
+    const targetTextureWidth = gl.canvas.width;
+    const targetTextureHeight =  gl.canvas.height;
+    this._frameTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this._frameTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+      targetTextureWidth, targetTextureHeight, 0,
+      gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+    // set the filtering so we don't need mips
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    
+    // attach the texture as the first color attachment
+    const attachmentPoint = gl.COLOR_ATTACHMENT0;
+    
+    // After this bind all draw calls will draw to this framebuffer texture
+    this._framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, this._frameTexture, 0);
+  }
+
+  private _startFrame() {
+    const gl = this.__gl;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
+    // very importnat to set the viewport to the size of the framebuffer texture
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+  }
+
+  private _endFrame() {
+    const gl = this.__gl;
+    // passing null switches renderering back to the canvas
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // todo post process shaders here
+    // "effects?" that can work on any texture?
+    
+    // use screen shader 
+    // frame texture
+    gl.bindTexture(gl.TEXTURE_2D, this._frameTexture);
+    
+    // flush screen shader
+    
+  }
+
   private _init() {
     const gl = this.__gl;
     // Setup viewport and view matrix

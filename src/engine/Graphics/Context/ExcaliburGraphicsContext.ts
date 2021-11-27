@@ -1,6 +1,7 @@
 import { Vector } from '../../Math/vector';
 import { Color } from '../../Color';
 import { Renderer } from "./renderer";
+import { Matrix } from '../../Math/matrix';
 
 export type HTMLImageSource = HTMLImageElement | HTMLCanvasElement;
 
@@ -10,10 +11,12 @@ export interface ExcaliburGraphicsContextOptions {
   enableTransparency?: boolean;
   snapToPixel?: boolean;
   backgroundColor?: Color;
+  powerPreference?: WebGLPowerPreference;
 }
 
 export interface ExcaliburGraphicsContextState {
   opacity: number;
+  z: number;
 }
 export interface LineGraphicsOptions {
   color: Color;
@@ -80,9 +83,14 @@ export interface ExcaliburGraphicsContext {
   backgroundColor: Color;
 
   /**
-   * Sets the opacity of the current [[Graphic]] being drawn, default is 1
+   * Sets the opacity of the current [[Graphic]] or draw call being drawn, default is 1
    */
   opacity: number;
+
+  /**
+   * Sets the z index of the current [[Graphic]] or draw call being drawn, default is 0
+   */
+  z: number;
 
   /**
    * Resets the current transform to the identity matrix
@@ -163,6 +171,8 @@ export interface ExcaliburGraphicsContext {
    * Restore the state of the canvas from the stack
    */
   restore(): void;
+
+  setTransform(transform: Matrix): void;
 
   /**
    * Translate the origin of the context by an x and y

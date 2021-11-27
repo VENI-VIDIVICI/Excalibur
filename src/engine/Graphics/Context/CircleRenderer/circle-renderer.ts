@@ -6,13 +6,15 @@ import { Shader } from "../shader";
 import circleVertexSource from './circle-vertex.glsl';
 import circleFragmentSource from './circle-fragment.glsl';
 import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
+import { ExcaliburGraphicsContextState } from '../ExcaliburGraphicsContext';
+import { Matrix } from '../../../Math/matrix';
 
 export class CircleRenderer implements Renderer {
   public readonly type = 'circle';
+  public priority = 0;
   shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
-  private _info!: WebGLGraphicsContextInfo
 
   private _vertices!: Float32Array;
   private _buffer!: WebGLBuffer;
@@ -21,7 +23,6 @@ export class CircleRenderer implements Renderer {
   private _circleCount = 0;
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void {
     this._gl = gl;
-    this._info = info;
     this.shader = new Shader(circleVertexSource, circleFragmentSource);
     this.shader.compile(gl)
     // this.shader.setAttribute('a_position', 3, gl.FLOAT);
@@ -56,13 +57,23 @@ export class CircleRenderer implements Renderer {
     return false;
   }
 
+  private _transform: Matrix;
+  setTransform(transform: Matrix) {
+    this._transform = transform;
+  }
+
+  private _state: ExcaliburGraphicsContextState
+  setState(state: ExcaliburGraphicsContextState) {
+    this._state = state;
+  }
+
   draw(pos: Vector, radius: number, color: Color, stroke: Color, strokeThickness: number) {
     if (this._isFull()) {
-      this.render();
+      this.flush();
     }
     this._circleCount++;
 
-    const currentTransform = this._info.transform.current;
+    const currentTransform = this._transform;
     let index = 0;
     let quad = [];
     const topLeft = pos.add(vec(-radius, -radius));
@@ -76,7 +87,7 @@ export class CircleRenderer implements Renderer {
     quad[index++] = currentTransform.multv([topRight.x, topRight.y]);
     quad[index++] = currentTransform.multv([bottomRight.x, bottomRight.y]);
 
-    const opacity = this._info.state.current.opacity;
+    const opacity = this._state.opacity;
 
     const uvx0 = 0;
     const uvy0 = 0;
@@ -222,7 +233,7 @@ export class CircleRenderer implements Renderer {
     // this.render();
   }
 
-  render(): void {
+  flush(): void {
     const gl = this._gl;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);

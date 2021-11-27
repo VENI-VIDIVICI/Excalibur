@@ -99,18 +99,27 @@ export class BoundingBox {
     );
   }
 
+  private _width: number;
   /**
    * Returns the calculated width of the bounding box
    */
   public get width() {
-    return this.right - this.left;
+    if (this._width) {
+      return this._width;
+    }
+    return this._width = this.right - this.left;
   }
 
+
+  private _height: number;
   /**
    * Returns the calculated height of the bounding box
    */
   public get height() {
-    return this.bottom - this.top;
+    if (this._height) {
+      return this._height;
+    }
+    return this._height = this.bottom - this.top;
   }
 
   /**

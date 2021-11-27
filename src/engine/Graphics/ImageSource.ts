@@ -8,18 +8,26 @@ export class ImageSource implements Loadable<HTMLImageElement> {
   private _logger = Logger.getInstance();
   private _resource: Resource<Blob>;
 
+  private _width: number;
   /**
    * The original size of the source image in pixels
    */
   public get width() {
-    return this.image.naturalWidth;
+    if (this._width) {
+      return this._width;
+    }
+    return this._width = this.image.naturalWidth;
   }
 
+  private _height: number;
   /**
    * The original height of the source image in pixels
    */
   public get height() {
-    return this.image.naturalHeight;
+    if (this._height) {
+      return this._height;
+    }
+    return this._height = this.image.naturalHeight;
   }
 
   private _src: string;

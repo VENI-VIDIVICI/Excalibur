@@ -4,6 +4,8 @@ import { Shader } from './shader';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { Pool, Poolable } from '../../Util/Pool';
 import { Renderer } from './renderer';
+import { Matrix } from '../../Math/matrix';
+import { ExcaliburGraphicsContextState } from './ExcaliburGraphicsContext';
 
 export interface Ctor<T> {
   new (): T;
@@ -114,10 +116,21 @@ export abstract class BatchRenderer<T extends Poolable> implements Renderer {
    */
   abstract renderBatch(gl: WebGLRenderingContext, batch: BatchCommand<T>, vertexCount: number): void;
 
+
+  protected _transform: Matrix;
+  setTransform(transform: Matrix) {
+    this._transform = transform;
+  }
+
+  protected _state: ExcaliburGraphicsContextState
+  setState(state: ExcaliburGraphicsContextState) {
+    this._state = state;
+  }
+
   /**
    * Build batch geometry, submit to the gpu, and issue draw command to underlying webgl
    */
-  public render(): void {
+  public flush(): void {
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
     this.shader.use();

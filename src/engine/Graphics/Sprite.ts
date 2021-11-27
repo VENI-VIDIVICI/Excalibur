@@ -4,6 +4,7 @@ import { ExcaliburGraphicsContext } from './Context/ExcaliburGraphicsContext';
 
 import { Sprite as LegacySprite } from '../Drawing/Sprite';
 import { Texture } from '../Drawing/Texture';
+import { watch } from '../Util/Watch';
 
 export type SourceView = { x: number; y: number; width: number; height: number };
 export type DestinationSize = { width: number; height: number };
@@ -28,6 +29,8 @@ export class Sprite extends Graphic {
   public sourceView: SourceView;
   public destSize: DestinationSize;
 
+  private _dirty = false;
+
   public static from(image: ImageSource): Sprite {
     return new Sprite({
       image: image
@@ -38,11 +41,11 @@ export class Sprite extends Graphic {
     super(options);
     this.image = options.image;
     const { width, height } = options;
-    this.sourceView = options.sourceView ?? { x: 0, y: 0, width: width ?? 0, height: height ?? 0 };
-    this.destSize = options.destSize ?? { width: width ?? 0, height: height ?? 0 };
+    this.sourceView = watch(options.sourceView ?? { x: 0, y: 0, width: width ?? 0, height: height ?? 0 }, () => this._dirty = true);
+    this.destSize = watch(options.destSize ?? { width: width ?? 0, height: height ?? 0 }, () => this._dirty = true);
     this._updateSpriteDimensions();
     this.image.ready.then(() => {
-      this._updateSpriteDimensions();
+      this._dirty = true;
     });
   }
 
@@ -63,14 +66,20 @@ export class Sprite extends Graphic {
 
   protected _preDraw(ex: ExcaliburGraphicsContext, x: number, y: number): void {
     if (this.image.isLoaded()) {
-      this._updateSpriteDimensions();
+      if (this._dirty) {
+        this._dirty = true;
+        this._updateSpriteDimensions();
+      }
     }
     super._preDraw(ex, x, y);
   }
 
   public _drawImage(ex: ExcaliburGraphicsContext, x: number, y: number): void {
     if (this.image.isLoaded()) {
-      this._updateSpriteDimensions();
+      if (this._dirty) {
+        this._dirty = false;
+        this._updateSpriteDimensions();
+      }
       ex.drawImage(
         this.image.image,
         this.sourceView.x,

@@ -1,15 +1,14 @@
 import { ExcaliburGraphicsContext } from './Context/ExcaliburGraphicsContext';
 import { Scene } from '../Scene';
 import { GraphicsComponent } from './GraphicsComponent';
-import { vec } from '../Math/vector';
-import { CoordPlane, TransformComponent } from '../EntityComponentSystem/Components/TransformComponent';
+import { TransformComponent } from '../EntityComponentSystem/Components/TransformComponent';
 import { Entity } from '../EntityComponentSystem/Entity';
 import { Camera } from '../Camera';
-import { System, SystemType, TagComponent } from '../EntityComponentSystem';
+import { AddedEntity, isAddedSystemEntity, RemovedEntity, System, SystemType, TagComponent } from '../EntityComponentSystem';
 import { Engine } from '../Engine';
 import { GraphicsDiagnostics } from './GraphicsDiagnostics';
 import { EnterViewPortEvent, ExitViewPortEvent } from '../Events';
-import { GraphicsGroup } from '.';
+import { Graphic } from './Graphic';
 import { Particle } from '../Particles';
 
 export class GraphicsSystem extends System<TransformComponent | GraphicsComponent> {
@@ -27,15 +26,20 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
     this._engine = scene.engine;
   }
 
-  public sort(a: Entity, b: Entity) {
-    return a.get(TransformComponent).z - b.get(TransformComponent).z;
-  }
+  // public sort(a: Entity, b: Entity) {
+  //   return a.get(TransformComponent).z - b.get(TransformComponent).z;
+  // }
 
   public update(entities: Entity[], delta: number): void {
     this._clearScreen();
     this._token++;
     let transform: TransformComponent;
     let graphics: GraphicsComponent;
+
+    this._graphicsContext.save();
+    if (this._camera) {
+      this._camera.draw(this._graphicsContext);
+    }
 
     for (const entity of entities) {
       transform = entity.get(TransformComponent);
@@ -58,7 +62,10 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
       }
 
       // This optionally sets our camera based on the entity coord plan (world vs. screen)
-      this._pushCameraTransform(transform);
+      // this._pushCameraTransform(transform);
+      // if (transform.coordPlane === CoordPlane.Screen) {
+      //   this._graphicsContext.restore();
+      // }
 
       this._graphicsContext.save();
 
@@ -67,6 +74,8 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
 
       // Position the entity
       this._applyTransform(entity);
+
+      this._graphicsContext.z = transform.z;
 
       // Optionally run the onPreDraw graphics lifecycle draw
       if (graphics.onPreDraw) {
@@ -88,9 +97,9 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
       this._graphicsContext.restore();
 
       // Reset the transform back to the original
-      this._popCameraTransform(transform);
+      // this._popCameraTransform(transform);
     }
-
+    this._graphicsContext.restore();
     this._graphicsContext.flush();
     this._engine.stats.currFrame.graphics.drawnImages = GraphicsDiagnostics.DrawnImagesCount;
     this._engine.stats.currFrame.graphics.drawCalls = GraphicsDiagnostics.DrawCallCount;
@@ -101,48 +110,81 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
     this._graphicsContext.clear();
   }
 
-  private _isOffscreen(transform: TransformComponent, graphics: GraphicsComponent) {
-    if (transform.coordPlane === CoordPlane.World) {
-      const graphicsOffscreen = !this._camera.viewport.intersect(graphics.localBounds.transform(transform.getGlobalMatrix()));
-      return graphicsOffscreen;
-    } else {
-      // TODO sceen coordinates
-      return false;
-    }
+  private _isOffscreen(_transform: TransformComponent, _graphics: GraphicsComponent) {
+    return false;
+    // if (transform.coordPlane === CoordPlane.World) {
+    //   const graphicsOffscreen = !this._camera.viewport.intersect(graphics.localBounds.transform(transform.getGlobalMatrix()));
+    //   return graphicsOffscreen;
+    // } else {
+    //   // TODO sceen coordinates
+    //   return false;
+    // }
   }
 
-  private _drawGraphicsComponent(graphicsComponent: GraphicsComponent) {
-    if (graphicsComponent.visible) {
-      // this should be moved to the graphics system
+  private _entityToGfx = new Map<Entity, [Graphic, number, number][]>();
+  notify(msg: AddedEntity | RemovedEntity) {
+    if (isAddedSystemEntity(msg)) {
+      let _graphics: [Graphic, number, number][] = [];
+      this._entityToGfx.set(msg.data, _graphics);
+      const graphicsComponent = msg.data.get(GraphicsComponent);
+      let anchor = graphicsComponent.anchor;
+      let offset = graphicsComponent.offset;
       for (const layer of graphicsComponent.layers.get()) {
         for (const { graphic, options } of layer.graphics) {
-          let anchor = graphicsComponent.anchor;
-          let offset = graphicsComponent.offset;
-          if (options?.anchor) {
+          if (options.anchor) {
             anchor = options.anchor;
           }
-          if (options?.offset) {
+          if (options.offset) {
             offset = options.offset;
           }
           // See https://github.com/excaliburjs/Excalibur/pull/619 for discussion on this formula
           const offsetX = -graphic.width * anchor.x + offset.x;
           const offsetY = -graphic.height * anchor.y + offset.y;
-
-          graphic?.draw(this._graphicsContext, offsetX + layer.offset.x, offsetY + layer.offset.y);
-
-          if (this._engine?.isDebug && this._engine.debug.graphics.showBounds) {
-            const offset = vec(offsetX + layer.offset.x, offsetY + layer.offset.y);
-            if (graphic instanceof GraphicsGroup) {
-              for (const g of graphic.members) {
-                g.graphic?.localBounds.translate(offset.add(g.pos)).draw(this._graphicsContext, this._engine.debug.graphics.boundsColor);
-              }
-            } else {
-              /* istanbul ignore next */
-              graphic?.localBounds.translate(offset).draw(this._graphicsContext, this._engine.debug.graphics.boundsColor);
-            }
-          }
+          _graphics.push([graphic, offsetX + layer.offset.x, offsetY + layer.offset.y])
         }
       }
+    } else {
+      this._entityToGfx.delete(msg.data);
+    }
+  }
+
+  private _drawGraphicsComponent(graphicsComponent: GraphicsComponent) {
+    if (graphicsComponent.visible) {
+      let gfx = this._entityToGfx.get(graphicsComponent.owner);
+      for (let i = 0; i < gfx.length; i++) {
+        gfx[i][0].draw(this._graphicsContext, gfx[i][1], gfx[i][2]);
+      }
+
+      // // this should be moved to the graphics system
+      // let anchor = graphicsComponent.anchor;
+      // let offset = graphicsComponent.offset;
+      // for (const layer of graphicsComponent.layers.get()) {
+      //   for (const { graphic, options } of layer.graphics) {
+      //     if (options.anchor) {
+      //       anchor = options.anchor;
+      //     }
+      //     if (options.offset) {
+      //       offset = options.offset;
+      //     }
+      //     // See https://github.com/excaliburjs/Excalibur/pull/619 for discussion on this formula
+      //     const offsetX = -graphic.width * anchor.x + offset.x;
+      //     const offsetY = -graphic.height * anchor.y + offset.y;
+
+      //     graphic?.draw(this._graphicsContext, offsetX + layer.offset.x, offsetY + layer.offset.y);
+
+      //     if (this._engine?.isDebug && this._engine.debug.graphics.showBounds) {
+      //       const offset = vec(offsetX + layer.offset.x, offsetY + layer.offset.y);
+      //       if (graphic instanceof GraphicsGroup) {
+      //         for (const g of graphic.members) {
+      //           g.graphic?.localBounds.translate(offset.add(g.pos)).draw(this._graphicsContext, this._engine.debug.graphics.boundsColor);
+      //         }
+      //       } else {
+      //         /* istanbul ignore next */
+      //         graphic?.localBounds.translate(offset).draw(this._graphicsContext, this._engine.debug.graphics.boundsColor);
+      //       }
+      //     }
+      //   }
+      // }
     }
   }
 
@@ -155,35 +197,36 @@ export class GraphicsSystem extends System<TransformComponent | GraphicsComponen
     for (const ancestor of ancestors) {
       const transform = ancestor?.get(TransformComponent);
       if (transform) {
-        this._graphicsContext.translate(transform.pos.x, transform.pos.y);
-        this._graphicsContext.scale(transform.scale.x, transform.scale.y);
-        this._graphicsContext.rotate(transform.rotation);
+        this._graphicsContext.setTransform(transform.matrix);
+        // this._graphicsContext.translate(transform.pos.x, transform.pos.y);
+        // this._graphicsContext.scale(transform.scale.x, transform.scale.y);
+        // this._graphicsContext.rotate(transform.rotation);
       }
     }
   }
 
-  /**
-   * Applies the current camera transform if in world coordinates
-   * @param transform
-   */
-  private _pushCameraTransform(transform: TransformComponent) {
-    // Establish camera offset per entity
-    if (transform.coordPlane === CoordPlane.World) {
-      this._graphicsContext.save();
-      if (this._camera) {
-        this._camera.draw(this._graphicsContext);
-      }
-    }
-  }
+  // /**
+  //  * Applies the current camera transform if in world coordinates
+  //  * @param transform
+  //  */
+  // private _pushCameraTransform(transform: TransformComponent) {
+  //   // Establish camera offset per entity
+  //   if (transform.coordPlane === CoordPlane.World) {
+  //     this._graphicsContext.save();
+  //     if (this._camera) {
+  //       this._camera.draw(this._graphicsContext);
+  //     }
+  //   }
+  // }
 
-  /**
-   * Resets the current camera transform if in world coordinates
-   * @param transform
-   */
-  private _popCameraTransform(transform: TransformComponent) {
-    if (transform.coordPlane === CoordPlane.World) {
-      // Apply camera world offset
-      this._graphicsContext.restore();
-    }
-  }
+  // /**
+  //  * Resets the current camera transform if in world coordinates
+  //  * @param transform
+  //  */
+  // private _popCameraTransform(transform: TransformComponent) {
+  //   if (transform.coordPlane === CoordPlane.World) {
+  //     // Apply camera world offset
+  //     this._graphicsContext.restore();
+  //   }
+  // }
 }

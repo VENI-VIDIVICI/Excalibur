@@ -12,6 +12,7 @@ import { StateStack } from './state-stack';
 import { GraphicsDiagnostics } from '../GraphicsDiagnostics';
 import { DebugText } from './debug-text';
 import { Renderer } from "./renderer";
+import { Matrix } from '../../Math/matrix';
 
 class ExcaliburGraphicsContext2DCanvasDebug implements DebugDraw {
   private _debugText = new DebugText();
@@ -92,6 +93,14 @@ export class ExcaliburGraphicsContext2DCanvas implements ExcaliburGraphicsContex
 
   public set opacity(value: number) {
     this._state.current.opacity = value;
+  }
+
+  public get z(): number {
+    return this._state.current.z;
+  }
+
+  public set z(value: number) {
+    this._state.current.z = value;
   }
 
   public snapToPixel: boolean = true;
@@ -232,6 +241,10 @@ export class ExcaliburGraphicsContext2DCanvas implements ExcaliburGraphicsContex
    */
   restore(): void {
     this.__ctx.restore();
+  }
+
+  setTransform(_transform: Matrix) {
+    // this.__ctx.setTransform().current = transform;
   }
 
   /**

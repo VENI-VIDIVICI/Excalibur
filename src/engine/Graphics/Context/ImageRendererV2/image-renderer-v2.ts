@@ -5,12 +5,15 @@ import { Shader } from "../shader";
 import imageVertexSource from './image-vertex-v2.glsl';
 import imageFragmentSource from './image-fragment-v2.glsl';
 import { TextureLoader } from "../texture-loader";
-import { HTMLImageSource } from "../..";
+import { ExcaliburGraphicsContextState, HTMLImageSource } from "../..";
 import { ensurePowerOfTwo } from "../webgl-util";
 import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
+import { range } from '../../../Util/Util';
+import { Matrix } from '../../..';
 
 export class ImageRendererV2 implements Renderer {
   public readonly type = 'image';
+  public priority = 0;
   private _MAX_TEXTURES: number = 0;
   private _textures: WebGLTexture[] = [];
   private _MAX_IMAGES_PER_DRAW: number = 2000;
@@ -19,7 +22,6 @@ export class ImageRendererV2 implements Renderer {
   public shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
-  private _info!: WebGLGraphicsContextInfo
 
   private _vertices!: Float32Array;
   private _buffer!: WebGLBuffer;
@@ -30,7 +32,6 @@ export class ImageRendererV2 implements Renderer {
    */
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo) {
     this._gl = gl;
-    this._info = info;
     this.shader = this._buildShader(gl, info);
     // Quads have 6 verts
     const verticesPerCommand = 6;
@@ -51,10 +52,6 @@ export class ImageRendererV2 implements Renderer {
       this._transformFragmentSource(imageFragmentSource, this._MAX_TEXTURES)
     );
     shader.compile(gl);
-    // shader.setAttribute('a_position', 3, gl.FLOAT);
-    // shader.setAttribute('a_texcoord', 2, gl.FLOAT);
-    // shader.setAttribute('a_textureIndex', 1, gl.FLOAT);
-    // shader.setAttribute('a_opacity', 1, gl.FLOAT);
     shader.setVertexAttributeLayout([
       'a_position',
       'a_texcoord',
@@ -64,8 +61,7 @@ export class ImageRendererV2 implements Renderer {
     shader.addUniformMatrix('u_matrix', info.matrix.data);
     // Initialize texture slots to [0, 1, 2, 3, 4, .... this._MAX_TEXTURES]
     shader.addUniformIntegerArray(
-      'u_textures',
-      [...Array(this._MAX_TEXTURES)].map((_, i) => i)
+      'u_textures', range(0, this._MAX_TEXTURES - 1)
     );
     return shader;
   }
@@ -118,6 +114,16 @@ export class ImageRendererV2 implements Renderer {
     return false;
   }
 
+  private _transform: Matrix;
+  setTransform(transform: Matrix) {
+    this._transform = transform;
+  }
+
+  private _state: ExcaliburGraphicsContextState
+  setState(state: ExcaliburGraphicsContextState) {
+    this._state = state;
+  }
+
   draw(image: HTMLImageSource,
     sx: number,
     sy: number,
@@ -130,12 +136,13 @@ export class ImageRendererV2 implements Renderer {
 
     // Force a render if the batch is full
     if (this._isFull()) {
-      this.render();
+      this.flush();
     }
 
     this._imageCount++;
     this._addImageAsTexture(image);
 
+    // TODO do this based on arguments
     // Build all geometry and ship to GPU
     // interleave VBOs https://goharsha.com/lwjgl-tutorial-series/interleaving-buffer-objects/
     let width = image?.width || swidth || 0;
@@ -150,7 +157,7 @@ export class ImageRendererV2 implements Renderer {
       height = dheight;
     }
 
-    const currentTransform = this._info.transform.current;
+    const currentTransform = this._transform;
     let index = 0;
     let quad = [];
     quad[index++] = currentTransform.multv([dest[0], dest[1]]);
@@ -160,7 +167,7 @@ export class ImageRendererV2 implements Renderer {
     quad[index++] = currentTransform.multv([dest[0], dest[1] + height]);
     quad[index++] = currentTransform.multv([dest[0] + width, dest[1] + height]);
 
-    const opacity = this._info.state.current.opacity;
+    const opacity = this._state.opacity;
     // if (this.snapToPixel) {
     //   for (const point of this._geom) {
     //     point[0] = ~~point[0];
@@ -173,6 +180,7 @@ export class ImageRendererV2 implements Renderer {
     let sw = view[2];
     let sh = view[3];
 
+    // Do we actually need to do POT stuff here?
     const textureId = this._getTextureIdForImage(image);
     const potWidth = ensurePowerOfTwo(image.width || width);
     const potHeight = ensurePowerOfTwo(image.height || height);
@@ -264,7 +272,7 @@ export class ImageRendererV2 implements Renderer {
     this._vertices[this._vertIndex++] = opacity;
   }
 
-  render(): void {
+  flush(): void {
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
     

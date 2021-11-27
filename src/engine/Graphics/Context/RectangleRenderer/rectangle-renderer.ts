@@ -6,13 +6,15 @@ import rectangleVertexSource from './rectangle-vertex.glsl';
 import rectangleFragmentSource from './rectangle-fragment.glsl';
 import { vec, Vector } from "../../../Math/vector";
 import { Color } from "../../../Color";
+import { ExcaliburGraphicsContextState } from '../ExcaliburGraphicsContext';
+import { Matrix } from '../../../Math/matrix';
 
 export class RectangleRenderer implements Renderer {
   public readonly type = 'rectangle';
+  public priority = 0;
   shader!: Shader;
 
   private _gl!: WebGLRenderingContext;
-  private _info!: WebGLGraphicsContextInfo
 
   private _vertices!: Float32Array;
   private _buffer!: WebGLBuffer;
@@ -21,7 +23,6 @@ export class RectangleRenderer implements Renderer {
   private _rectangleCount = 0;
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void {
     this._gl = gl;
-    this._info = info;
     this.shader = new Shader(rectangleVertexSource, rectangleFragmentSource);
     this.shader.compile(this._gl);
     // this.shader.setAttribute('a_position', 3, gl.FLOAT);
@@ -56,13 +57,24 @@ export class RectangleRenderer implements Renderer {
     }
     return false;
   }
+
+  private _transform: Matrix;
+  setTransform(transform: Matrix) {
+    this._transform = transform;
+  }
+
+  private _state: ExcaliburGraphicsContextState
+  setState(state: ExcaliburGraphicsContextState) {
+    this._state = state;
+  }
+
   draw(pos: Vector, width: number, height: number, color: Color, borderRadius: number = 0, stroke: Color = Color.Transparent, strokeThickness: number = 0): void {
     if (this._isFull()) {
-      this.render();
+      this.flush();
     }
     this._rectangleCount++;
 
-    const currentTransform = this._info.transform.current;
+    const currentTransform = this._transform;
     let index = 0;
     let quad = [];
     const topLeft = pos.add(vec(0, 0));
@@ -76,7 +88,7 @@ export class RectangleRenderer implements Renderer {
     quad[index++] = currentTransform.multv([topRight.x, topRight.y]);
     quad[index++] = currentTransform.multv([bottomRight.x, bottomRight.y]);
 
-    const opacity = this._info.state.current.opacity;
+    const opacity = this._state.opacity;
 
     const uvx0 = 0;
     const uvy0 = 0;
@@ -232,7 +244,7 @@ export class RectangleRenderer implements Renderer {
     // stroke thickness
     this._vertices[this._vertIndex++] = strokeThickness / (width);
   }
-  render(): void {
+  flush(): void {
     const gl = this._gl;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);

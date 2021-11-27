@@ -1,6 +1,7 @@
 import { Vector, vec } from '../Math/vector';
 import { ExcaliburGraphicsContext } from './Context/ExcaliburGraphicsContext';
 import { BoundingBox } from '../Collision/BoundingBox';
+import { Matrix } from '..';
 
 export interface GraphicOptions {
   /**
@@ -47,6 +48,7 @@ export interface GraphicOptions {
  */
 export abstract class Graphic {
   private static _ID: number = 0;
+  private _transform: Matrix = Matrix.identity();
   readonly id = Graphic._ID++;
 
   /**
@@ -161,23 +163,31 @@ export abstract class Graphic {
    */
   protected abstract _drawImage(ex: ExcaliburGraphicsContext, x: number, y: number): void;
 
+  protected _preCalculate() {
+    const ex = this._transform;
+    ex.scale(Math.abs(this.scale.x), Math.abs(this.scale.y));
+    this._rotate(ex);
+    this._flip(ex);
+  }
+
   /**
    * Apply affine transformations to the graphics context to manipulate the graphic before [[Graphic._drawImage]]
    * @param ex
    * @param x
    * @param y
    */
-  protected _preDraw(ex: ExcaliburGraphicsContext, x: number, y: number): void {
-    ex.save();
-    ex.translate(x, y);
-    ex.scale(Math.abs(this.scale.x), Math.abs(this.scale.y));
-    this._rotate(ex);
-    this._flip(ex);
-    // it is important to multiply alphas so graphics respect the current context
-    ex.opacity = ex.opacity * this.opacity;
+  protected _preDraw(_ex: ExcaliburGraphicsContext, _x: number, _y: number): void {
+    // ex.save();
+    // ex.translate(x, y);
+    // ex.scale(Math.abs(this.scale.x), Math.abs(this.scale.y));
+    // this._rotate(ex);
+    // this._flip(ex);
+    
+    // // it is important to multiply alphas so graphics respect the current context
+    // ex.opacity = ex.opacity * this.opacity;
   }
 
-  protected _rotate(ex: ExcaliburGraphicsContext) {
+  protected _rotate(ex: ExcaliburGraphicsContext | Matrix) {
     const scaleDirX = this.scale.x > 0 ? 1 : -1;
     const scaleDirY = this.scale.y > 0 ? 1 : -1;
     const origin = this.origin ?? vec(this.width / 2, this.height / 2);
@@ -188,7 +198,7 @@ export abstract class Graphic {
     ex.translate(-origin.x, -origin.y);
   }
 
-  protected _flip(ex: ExcaliburGraphicsContext) {
+  protected _flip(ex: ExcaliburGraphicsContext | Matrix) {
     if (this.flipHorizontal) {
       ex.translate(this.width / this.scale.x, 0);
       ex.scale(-1, 1);
@@ -204,11 +214,11 @@ export abstract class Graphic {
    * Apply any addtional work after [[Graphic._drawImage]] and restore the context state.
    * @param ex
    */
-  protected _postDraw(ex: ExcaliburGraphicsContext): void {
-    if (this.showDebug) {
-      ex.debug.drawRect(0, 0, this.width, this.height);
-    }
-    ex.restore();
+  protected _postDraw(_ex: ExcaliburGraphicsContext): void {
+    // if (this.showDebug) {
+    //   ex.debug.drawRect(0, 0, this.width, this.height);
+    // }
+    // ex.restore();
   }
 
   /**

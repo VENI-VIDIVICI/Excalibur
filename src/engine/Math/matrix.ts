@@ -84,8 +84,8 @@ export class Matrix {
   /**
    * Creates a new Matrix with the same data as the current 4x4
    */
-  public clone(): Matrix {
-    const mat = new Matrix();
+  public clone(target?: Matrix): Matrix {
+    const mat = target ?? new Matrix();
     mat.data[0] = this.data[0];
     mat.data[1] = this.data[1];
     mat.data[2] = this.data[2];
@@ -286,10 +286,10 @@ export class Matrix {
     const a32 = this.data[6];
     const a42 = this.data[7];
 
-    const a13 = this.data[8];
-    const a23 = this.data[9];
-    const a33 = this.data[10];
-    const a43 = this.data[11];
+    // const a13 = this.data[8];
+    // const a23 = this.data[9];
+    // const a33 = this.data[10];
+    // const a43 = this.data[11];
 
     const a14 = this.data[12];
     const a24 = this.data[13];
@@ -297,12 +297,12 @@ export class Matrix {
     const a44 = this.data[15];
 
     // Doesn't change z
-    const z = 0;
-    const w = 1;
-    this.data[12] = a11 * x + a12 * y + a13 * z + a14 * w;
-    this.data[13] = a21 * x + a22 * y + a23 * z + a24 * w;
-    this.data[14] = a31 * x + a32 * y + a33 * z + a34 * w;
-    this.data[15] = a41 * x + a42 * y + a43 * z + a44 * w;
+    // const z = 0;
+    // const w = 1;
+    this.data[12] = a11 * x + a12 * y + /* a13 * z */ + a14 /* * w */;
+    this.data[13] = a21 * x + a22 * y + /* a23 * z */ + a24 /* * w */;
+    this.data[14] = a31 * x + a32 * y + /* a33 * z */ + a34 /* * w */;
+    this.data[15] = a41 * x + a42 * y + /* a43 * z */ + a44 /* * w */;
 
     return this;
   }
@@ -323,26 +323,26 @@ export class Matrix {
   rotate(angle: number) {
     const a11 = this.data[0];
     const a21 = this.data[1];
-    const a31 = this.data[2];
-    const a41 = this.data[3];
+    // const a31 = this.data[2];
+    // const a41 = this.data[3];
 
     const a12 = this.data[4];
     const a22 = this.data[5];
-    const a32 = this.data[6];
-    const a42 = this.data[7];
+    // const a32 = this.data[6];
+    // const a42 = this.data[7];
 
     const sine = Math.sin(angle);
     const cosine = Math.cos(angle);
 
     this.data[0] = cosine * a11 + sine * a12;
     this.data[1] = cosine * a21 + sine * a22;
-    this.data[2] = cosine * a31 + sine * a32;
-    this.data[3] = cosine * a41 + sine * a42;
+    // this.data[2] = cosine * a31 + sine * a32;
+    // this.data[3] = cosine * a41 + sine * a42;
 
     this.data[4] = cosine * a12 - sine * a11;
     this.data[5] = cosine * a22 - sine * a21;
-    this.data[6] = cosine * a32 - sine * a31;
-    this.data[7] = cosine * a42 - sine * a41;
+    // this.data[6] = cosine * a32 - sine * a31;
+    // this.data[7] = cosine * a42 - sine * a41;
 
     return this;
   }
@@ -353,6 +353,9 @@ export class Matrix {
    * @param y
    */
   scale(x: number, y: number) {
+    if (x === 1 && y === 1) {
+      return this;
+    }
     const a11 = this.data[0];
     const a21 = this.data[1];
     const a31 = this.data[2];

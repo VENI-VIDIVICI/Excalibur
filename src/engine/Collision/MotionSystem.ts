@@ -20,15 +20,15 @@ export class MotionSystem extends System<TransformComponent | MotionComponent> {
       motion = entity.get(MotionComponent);
 
       const optionalBody = entity.get(BodyComponent);
-      if (optionalBody?.sleeping) {
+      if (optionalBody && optionalBody.sleeping) {
         continue;
       }
 
       const totalAcc = motion.acc.clone();
-      if (optionalBody?.collisionType === CollisionType.Active && optionalBody?.useGravity) {
+      if (optionalBody && optionalBody.collisionType === CollisionType.Active && optionalBody.useGravity) {
         totalAcc.addEqual(Physics.gravity);
       }
-      optionalBody?.captureOldTransform();
+      // optionalBody?.captureOldTransform();
 
       // Update transform and motion based on Euler linear algebra
       EulerIntegrator.integrate(transform, motion, totalAcc, elapsedMs);

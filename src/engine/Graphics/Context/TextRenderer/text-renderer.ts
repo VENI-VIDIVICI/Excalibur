@@ -1,6 +1,6 @@
-import { Color, vec, Vector } from "../../..";
+import { Color, Matrix, vec, Vector } from "../../..";
 import { GraphicsDiagnostics } from "../../GraphicsDiagnostics";
-import { HTMLImageSource } from "../ExcaliburGraphicsContext";
+import { ExcaliburGraphicsContextState, HTMLImageSource } from "../ExcaliburGraphicsContext";
 import { WebGLGraphicsContextInfo } from "../ExcaliburGraphicsContextWebGL";
 import { Renderer } from "../renderer";
 import { Shader } from "../shader";
@@ -19,13 +19,13 @@ export interface SDFData {
 }
 
 export class TextRenderer implements Renderer {
-  private _MAX_CHARS_PER_DRAW = 2000;
   public readonly type = 'text';
+  public priority = 0;
+  private _MAX_CHARS_PER_DRAW = 2000;
   shader: Shader;
 
   private _texture: WebGLTexture;
   private _gl: WebGLRenderingContext;
-  private _info: WebGLGraphicsContextInfo;
 
   private _vertices!: Float32Array;
   private _buffer!: WebGLBuffer;
@@ -35,7 +35,6 @@ export class TextRenderer implements Renderer {
 
   initialize(gl: WebGLRenderingContext, info: WebGLGraphicsContextInfo): void {
     this._gl = gl;
-    this._info = info;
     this.shader = new Shader(textVertexSource, textFragmentSource);
     this.shader.compile(this._gl);
     this.shader.setVertexAttributeLayout([
@@ -64,10 +63,20 @@ export class TextRenderer implements Renderer {
     }
     return false;
   }
+
+  private _transform: Matrix;
+  setTransform(transform: Matrix) {
+    this._transform = transform;
+  }
+
+  setState(state: ExcaliburGraphicsContextState) {
+    this.shader.addUniformFloat('u_opacity', state.opacity);
+  }
+
   // TODO update FOnt to produce a sddf
   draw(fontSDFAtlasImage: HTMLImageSource, fontData: SDFData, pos: Vector, text: string): void {
     if (this._isFull()) {
-      this.render();
+      this.flush();
     }
 
     // Update font atlas as texture
@@ -79,7 +88,7 @@ export class TextRenderer implements Renderer {
       this._charCount++;
       const charInfo = fontData[char];
       // Use font data to produce size and uv info
-      const currentTransform = this._info.transform.current;
+      const currentTransform = this._transform;
       const potWidth = ensurePowerOfTwo(fontSDFAtlasImage.width);
       const potHeight = ensurePowerOfTwo(fontSDFAtlasImage.height);
       
@@ -106,7 +115,7 @@ export class TextRenderer implements Renderer {
       }
     }
   }
-  render(): void {
+  flush(): void {
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
     
